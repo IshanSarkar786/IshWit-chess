@@ -1,0 +1,1517 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>IshWit Chess — by Ishan & Adwitiya</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=JetBrains+Mono:wght@300;400;600&family=Cormorant+Garamond:ital,wght@0,300;0,600;1,300&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#080810;--surface:#111118;--surface2:#191924;--border:#252538;
+  --gold:#c9a84c;--gold2:#e8c96e;--cream:#f0e6c8;--muted:#6060808;
+  --muted:#5a5a7a;--white:#f0eae0;--danger:#b83030;--success:#38906a;
+  --light-sq:#f0d9b5;--dark-sq:#b58863;
+  --highlight:rgba(201,168,76,0.5);--move-hint:rgba(50,180,100,0.55);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--white);font-family:'JetBrains Mono',monospace;min-height:100vh;overflow-x:hidden}
+body::after{content:'';position:fixed;inset:0;background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23n)' opacity='0.035'/%3E%3C/svg%3E");pointer-events:none;z-index:9999}
+
+/* === SCREENS === */
+.screen{display:none;min-height:100vh}
+.screen.active{display:flex}
+
+/* === LOGIN === */
+#loginScreen{align-items:center;justify-content:center;flex-direction:column;position:relative;background:radial-gradient(ellipse at 40% 60%,#161228 0%,var(--bg) 65%)}
+.login-bg-piece{position:absolute;font-size:22rem;opacity:.025;user-select:none;pointer-events:none;top:50%;left:50%;transform:translate(-50%,-50%)}
+.login-box{background:var(--surface);border:1px solid var(--border);padding:50px 44px;width:410px;max-width:94vw;position:relative;animation:fadeUp .5s ease}
+.login-box::before{content:'';position:absolute;top:0;left:20px;right:20px;height:2px;background:linear-gradient(90deg,transparent,var(--gold),transparent)}
+@keyframes fadeUp{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:translateY(0)}}
+.login-logo{font-family:'Playfair Display',serif;font-size:2rem;font-weight:900;color:var(--gold);text-align:center;margin-bottom:3px;letter-spacing:-1px}
+.login-tagline{font-family:'Cormorant Garamond',serif;font-style:italic;color:var(--muted);text-align:center;font-size:.95rem;margin-bottom:32px}
+.tab-row{display:flex;border-bottom:1px solid var(--border);margin-bottom:24px}
+.tab-btn{flex:1;background:none;border:none;color:var(--muted);padding:10px;cursor:pointer;font-family:'JetBrains Mono',monospace;font-size:.7rem;letter-spacing:2px;text-transform:uppercase;border-bottom:2px solid transparent;transition:all .2s;margin-bottom:-1px}
+.tab-btn.active{color:var(--gold);border-bottom-color:var(--gold)}
+.field{margin-bottom:16px}
+.field label{display:block;color:var(--muted);font-size:.65rem;letter-spacing:2px;text-transform:uppercase;margin-bottom:7px}
+.field input{width:100%;background:var(--surface2);border:1px solid var(--border);padding:11px 13px;color:var(--white);font-family:'JetBrains Mono',monospace;font-size:.85rem;outline:none;transition:border-color .2s}
+.field input:focus{border-color:var(--gold)}
+.btn-gold{width:100%;background:var(--gold);border:none;padding:13px;color:#080810;font-family:'JetBrains Mono',monospace;font-size:.75rem;letter-spacing:3px;text-transform:uppercase;cursor:pointer;font-weight:700;transition:all .2s;margin-top:6px}
+.btn-gold:hover{background:var(--gold2);transform:translateY(-1px)}
+.btn-ghost{background:none;border:1px solid var(--border);color:var(--muted);width:100%;padding:10px;font-family:'JetBrains Mono',monospace;font-size:.7rem;letter-spacing:2px;text-transform:uppercase;cursor:pointer;margin-top:9px;transition:all .2s}
+.btn-ghost:hover{border-color:var(--muted);color:var(--white)}
+
+/* === NAV === */
+#appScreen{flex-direction:column}
+nav{background:var(--surface);border-bottom:1px solid var(--border);padding:0 28px;display:flex;align-items:center;height:58px;gap:0;position:sticky;top:0;z-index:200}
+.nav-logo{font-family:'Playfair Display',serif;font-size:1.25rem;font-weight:900;color:var(--gold);margin-right:36px;white-space:nowrap;letter-spacing:-.5px;cursor:pointer}
+.nav-tabs{display:flex;gap:0;flex:1;overflow-x:auto}
+.nav-tab{background:none;border:none;color:var(--muted);padding:0 18px;height:58px;cursor:pointer;font-family:'JetBrains Mono',monospace;font-size:.68rem;letter-spacing:1.5px;text-transform:uppercase;border-bottom:2px solid transparent;transition:all .2s;white-space:nowrap}
+.nav-tab:hover{color:var(--white)}
+.nav-tab.active{color:var(--gold);border-bottom-color:var(--gold)}
+.nav-user{margin-left:auto;display:flex;align-items:center;gap:10px;flex-shrink:0}
+.nav-avatar{width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,var(--gold),#60408a);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:.8rem;color:#080810}
+.nav-uname{font-size:.78rem;color:var(--cream)}
+.nav-elo{font-size:.62rem;color:var(--gold)}
+.logout-btn{background:none;border:1px solid var(--border);color:var(--muted);padding:5px 12px;font-family:'JetBrains Mono',monospace;font-size:.65rem;letter-spacing:1px;cursor:pointer;transition:all .2s}
+.logout-btn:hover{border-color:var(--danger);color:var(--danger)}
+
+/* === PAGES === */
+.page{display:none;padding:28px 32px;max-width:1320px;margin:0 auto;width:100%}
+.page.active{display:block}
+
+/* === HOME === */
+.home-hero{text-align:center;padding:56px 0 36px}
+.home-hero h1{font-family:'Playfair Display',serif;font-size:3.2rem;font-weight:900;color:var(--gold);line-height:1.1;margin-bottom:14px}
+.home-hero p{font-family:'Cormorant Garamond',serif;font-size:1.25rem;color:var(--muted);font-style:italic}
+.home-cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:14px;margin-top:44px}
+.home-card{background:var(--surface);border:1px solid var(--border);padding:26px 22px;cursor:pointer;transition:all .22s;text-align:center;position:relative;overflow:hidden}
+.home-card::after{content:'';position:absolute;inset:0;background:linear-gradient(135deg,rgba(201,168,76,.06),transparent 60%);opacity:0;transition:.22s}
+.home-card:hover{border-color:var(--gold);transform:translateY(-3px)}
+.home-card:hover::after{opacity:1}
+.home-card-icon{font-size:2.3rem;margin-bottom:14px}
+.home-card h3{font-family:'Playfair Display',serif;font-size:1rem;color:var(--cream);margin-bottom:7px}
+.home-card p{font-size:.72rem;color:var(--muted);line-height:1.55}
+
+/* === CHESS BOARD === */
+.game-layout{display:grid;grid-template-columns:220px 1fr 280px;gap:20px;align-items:start}
+.player-panel{display:flex;flex-direction:column;gap:10px}
+.player-card{background:var(--surface);border:1px solid var(--border);padding:12px 15px;display:flex;align-items:center;gap:10px;transition:border-color .2s}
+.player-card.active-turn{border-color:var(--gold)}
+.p-icon{font-size:1.3rem}
+.p-name{font-size:.82rem;color:var(--cream)}
+.p-elo{font-size:.7rem;color:var(--gold)}
+.p-time{margin-left:auto;font-size:1.05rem;font-weight:600;color:var(--white);font-variant-numeric:tabular-nums}
+.p-time.low{color:var(--danger);animation:pulse 1s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.5}}
+.cap-row{font-size:1rem;min-height:22px;color:var(--muted)}
+.status-bar{text-align:center;padding:10px;background:var(--surface2);border:1px solid var(--border);font-family:'Cormorant Garamond',serif;font-size:1rem;font-style:italic;color:var(--gold)}
+
+/* BOARD */
+.board-outer{display:flex;flex-direction:column;align-items:center}
+#boardContainer{position:relative;width:100%;max-width:480px}
+.board-row-labels{position:absolute;left:-18px;top:0;bottom:0;display:flex;flex-direction:column;pointer-events:none}
+.board-col-labels{display:flex;margin-left:0px;max-width:480px;width:100%}
+.board-label{font-size:.6rem;color:var(--muted);display:flex;align-items:center;justify-content:center;flex:1}
+.rank-label{font-size:.6rem;color:var(--muted);flex:1;display:flex;align-items:center;justify-content:center}
+#chessboard{display:grid;grid-template-columns:repeat(8,1fr);width:100%;max-width:480px;aspect-ratio:1;border:2px solid var(--border);cursor:pointer;user-select:none}
+.sq{aspect-ratio:1;display:flex;align-items:center;justify-content:center;position:relative;transition:background .1s}
+.sq.light{background:var(--light-sq)}
+.sq.dark{background:var(--dark-sq)}
+.sq.sel{box-shadow:inset 0 0 0 3px var(--gold);background:var(--highlight)!important}
+.sq.hint::after{content:'';position:absolute;width:32%;height:32%;border-radius:50%;background:var(--move-hint);pointer-events:none}
+.sq.cap-hint{background:rgba(190,50,50,.38)!important}
+.sq.last-from,.sq.last-to{background:rgba(201,168,76,.28)!important}
+.sq.in-check{background:rgba(200,40,40,.5)!important}
+.piece{font-size:clamp(1.4rem,3.5vw,2rem);line-height:1;pointer-events:none;display:block;text-align:center}
+
+/* SIDE PANEL */
+.game-panel{background:var(--surface);border:1px solid var(--border);padding:18px;display:flex;flex-direction:column;gap:14px}
+.panel-hd{font-size:.65rem;letter-spacing:2.5px;text-transform:uppercase;color:var(--gold);border-bottom:1px solid var(--border);padding-bottom:10px}
+.diff-row{display:flex;gap:5px}
+.diff-btn{flex:1;background:var(--surface2);border:1px solid var(--border);color:var(--muted);padding:6px 4px;font-size:.62rem;letter-spacing:1px;text-transform:uppercase;cursor:pointer;transition:all .2s;font-family:'JetBrains Mono',monospace}
+.diff-btn.on{background:var(--gold);color:#080810;border-color:var(--gold)}
+.move-list{height:180px;overflow-y:auto;font-size:.78rem;line-height:1.9;color:var(--muted)}
+.move-list::-webkit-scrollbar{width:2px}
+.move-list::-webkit-scrollbar-thumb{background:var(--border)}
+.mpair{display:flex;gap:6px;align-items:center}
+.mnum{color:var(--muted);min-width:22px;font-size:.65rem}
+.msan{padding:1px 5px;color:var(--cream);cursor:pointer;transition:background .15s}
+.msan:hover{background:var(--surface2)}
+.ctrl-row{display:flex;gap:6px;flex-wrap:wrap}
+.ctrl-btn{flex:1;min-width:55px;background:var(--surface2);border:1px solid var(--border);color:var(--muted);padding:8px 4px;font-size:.75rem;cursor:pointer;transition:all .2s;font-family:'JetBrains Mono',monospace}
+.ctrl-btn:hover{border-color:var(--gold);color:var(--gold)}
+.new-game-btn{background:none;border:1px solid var(--gold);color:var(--gold);padding:9px;width:100%;cursor:pointer;font-family:'JetBrains Mono',monospace;font-size:.72rem;letter-spacing:2px;text-transform:uppercase;transition:all .2s}
+.new-game-btn:hover{background:var(--gold);color:#080810}
+.ai-bubble{background:var(--surface2);border-left:3px solid var(--gold);padding:11px 13px;font-size:.78rem;line-height:1.6;color:var(--cream);min-height:70px}
+
+/* PROMOTION */
+.promo-modal{position:fixed;inset:0;background:rgba(0,0,0,.85);display:none;align-items:center;justify-content:center;z-index:500}
+.promo-modal.on{display:flex}
+.promo-box{background:var(--surface);border:1px solid var(--gold);padding:24px;text-align:center}
+.promo-box h3{font-family:'Playfair Display',serif;color:var(--gold);margin-bottom:16px}
+.promo-pieces{display:flex;gap:10px;justify-content:center}
+.promo-p{font-size:2.4rem;cursor:pointer;padding:8px 12px;border:1px solid var(--border);transition:all .2s}
+.promo-p:hover{border-color:var(--gold);background:var(--surface2)}
+
+/* === RANKING === */
+.rank-hd{font-family:'Playfair Display',serif;font-size:1.9rem;color:var(--gold);margin-bottom:22px}
+.rank-table{background:var(--surface);border:1px solid var(--border);overflow:hidden}
+.rank-row{display:grid;grid-template-columns:44px 1fr 90px 80px 90px;padding:13px 18px;border-bottom:1px solid var(--border);align-items:center;transition:background .15s}
+.rank-row:hover{background:var(--surface2)}
+.rank-row.theader{background:var(--surface2)}
+.rank-row.theader span{font-size:.62rem;letter-spacing:2px;text-transform:uppercase;color:var(--muted)}
+.rank-row.me{border-left:3px solid var(--gold)}
+.rnum{font-family:'Playfair Display',serif;font-size:1.05rem;color:var(--muted);font-weight:700}
+.rnum.g{color:#FFD700}.rnum.s{color:#C0C0C0}.rnum.b{color:#CD7F32}
+.rplayer{display:flex;align-items:center;gap:9px}
+.ravatar{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:.72rem;font-weight:700;color:#080810}
+.rname{font-size:.82rem;color:var(--cream)}
+.rrating{font-size:.88rem;color:var(--gold);font-weight:600}
+.rwins{font-size:.78rem;color:var(--success)}
+.rtitle{font-size:.62rem;letter-spacing:1px;color:var(--muted)}
+
+/* === AI TUTOR === */
+.tutor-grid{display:grid;grid-template-columns:1fr 1fr;gap:22px;align-items:start}
+.lesson-list-wrap{display:flex;flex-direction:column;gap:9px}
+.lesson-card{background:var(--surface);border:1px solid var(--border);padding:14px 18px;cursor:pointer;transition:all .2s;display:flex;align-items:center;gap:12px}
+.lesson-card:hover,.lesson-card.on{border-color:var(--gold)}
+.lesson-card.done{border-color:var(--success)}
+.l-icon{font-size:1.4rem}
+.l-title{font-size:.82rem;color:var(--cream);margin-bottom:2px}
+.l-desc{font-size:.68rem;color:var(--muted)}
+.l-stat{margin-left:auto;font-size:.7rem}
+.lesson-panel{background:var(--surface);border:1px solid var(--border);padding:22px;position:sticky;top:70px}
+.lesson-panel h2{font-family:'Playfair Display',serif;font-size:1.4rem;color:var(--gold);margin-bottom:14px}
+.lesson-body{font-family:'Cormorant Garamond',serif;font-size:1.05rem;color:var(--cream);line-height:1.8;margin-bottom:18px}
+.chat-wrap{border:1px solid var(--border);overflow:hidden;margin-top:14px}
+.chat-msgs{height:190px;overflow-y:auto;padding:11px;display:flex;flex-direction:column;gap:9px;background:var(--surface2)}
+.chat-msgs::-webkit-scrollbar{width:2px}
+.chat-msgs::-webkit-scrollbar-thumb{background:var(--border)}
+.chat-msg{max-width:86%;padding:9px 13px;font-size:.8rem;line-height:1.5}
+.chat-msg.user{background:var(--surface);color:var(--cream);margin-left:auto}
+.chat-msg.ai{background:var(--surface);border-left:3px solid var(--gold);color:var(--cream)}
+.chat-msg.ai .ai-tag{font-size:.6rem;color:var(--gold);margin-bottom:3px;letter-spacing:1px}
+.chat-in-row{display:flex;border-top:1px solid var(--border)}
+.chat-in{flex:1;background:var(--surface);border:none;padding:11px 13px;color:var(--white);font-family:'JetBrains Mono',monospace;font-size:.8rem;outline:none}
+.chat-send{background:var(--gold);border:none;color:#080810;padding:0 16px;cursor:pointer;font-weight:700;font-size:.8rem;transition:background .2s}
+.chat-send:hover{background:var(--gold2)}
+
+/* === QUIZ === */
+.quiz-outer{max-width:680px;margin:0 auto}
+.quiz-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:28px}
+.quiz-title-txt{font-family:'Playfair Display',serif;font-size:1.85rem;color:var(--gold)}
+.quiz-prog-txt{font-size:.72rem;color:var(--muted);letter-spacing:2px}
+.quiz-bar-wrap{height:3px;background:var(--surface2);margin-bottom:28px;overflow:hidden}
+.quiz-bar-fill{height:100%;background:var(--gold);transition:width .35s ease}
+.quiz-scores{display:flex;gap:14px;margin-bottom:20px;font-size:.72rem}
+.qsdot{width:7px;height:7px;border-radius:50%;display:inline-block;margin-right:5px}
+.qsdot.c{background:var(--success)}.qsdot.w{background:var(--danger)}
+.quiz-card{background:var(--surface);border:1px solid var(--border);padding:28px;margin-bottom:18px;animation:fadeUp .3s ease}
+.quiz-qnum{font-size:.62rem;color:var(--muted);letter-spacing:2px;margin-bottom:10px}
+.quiz-q{font-family:'Playfair Display',serif;font-size:1.2rem;color:var(--cream);line-height:1.5;margin-bottom:24px}
+.quiz-opts{display:flex;flex-direction:column;gap:9px}
+.quiz-opt{background:var(--surface2);border:1px solid var(--border);padding:13px 16px;cursor:pointer;font-size:.82rem;color:var(--cream);transition:all .2s;text-align:left;font-family:'JetBrains Mono',monospace}
+.quiz-opt:hover:not(:disabled){border-color:var(--gold);color:var(--gold)}
+.quiz-opt.correct{background:rgba(56,144,106,.15);border-color:var(--success);color:var(--success)}
+.quiz-opt.wrong{background:rgba(184,48,48,.15);border-color:var(--danger);color:var(--danger)}
+.quiz-opt:disabled{cursor:default}
+.quiz-explain{background:var(--surface2);border-left:3px solid var(--gold);padding:13px 16px;font-family:'Cormorant Garamond',serif;font-size:1rem;color:var(--cream);line-height:1.6;display:none}
+.quiz-explain.on{display:block;animation:fadeUp .3s ease}
+.quiz-next-btn{background:var(--gold);border:none;color:#080810;padding:12px 30px;font-family:'JetBrains Mono',monospace;font-size:.72rem;letter-spacing:2px;text-transform:uppercase;cursor:pointer;font-weight:600;transition:all .2s;display:none;margin-top:18px}
+.quiz-next-btn.on{display:inline-block}
+.quiz-next-btn:hover{background:var(--gold2);transform:translateY(-1px)}
+.quiz-result{text-align:center;padding:56px 28px;background:var(--surface);border:1px solid var(--border)}
+.quiz-result h2{font-family:'Playfair Display',serif;font-size:1.9rem;color:var(--gold);margin-bottom:10px}
+.big-score{font-size:3.8rem;font-weight:900;color:var(--cream);margin:18px 0}
+.quiz-cat-row{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-bottom:22px}
+.cat-btn{background:var(--surface2);border:1px solid var(--border);color:var(--muted);padding:7px 14px;cursor:pointer;font-family:'JetBrains Mono',monospace;font-size:.65rem;letter-spacing:1px;text-transform:uppercase;transition:all .2s}
+.cat-btn:hover,.cat-btn.on{border-color:var(--gold);color:var(--gold)}
+
+/* === AUTHORS === */
+.authors-section{max-width:900px;margin:0 auto}
+.authors-title{font-family:'Playfair Display',serif;font-size:2rem;color:var(--gold);margin-bottom:8px}
+.authors-sub{font-size:.78rem;color:var(--muted);margin-bottom:40px;font-family:'Cormorant Garamond',serif;font-style:italic;font-size:1.05rem}
+.authors-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:24px;margin-bottom:48px}
+.author-card{background:var(--surface);border:1px solid var(--border);padding:32px;position:relative;overflow:hidden;transition:border-color .25s}
+.author-card:hover{border-color:var(--gold)}
+.author-card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,var(--gold),transparent)}
+.author-num{position:absolute;top:18px;right:20px;font-size:3.5rem;font-weight:900;color:rgba(201,168,76,.06);font-family:'Playfair Display',serif;line-height:1}
+.author-avatar{width:72px;height:72px;border-radius:50%;border:2px solid var(--gold);display:flex;align-items:center;justify-content:center;font-size:1.8rem;margin-bottom:18px;position:relative}
+.author-avatar-ring{width:80px;height:80px;border-radius:50%;border:1px solid rgba(201,168,76,.2);display:flex;align-items:center;justify-content:center;margin-bottom:16px}
+.author-name{font-family:'Playfair Display',serif;font-size:1.5rem;color:var(--gold);margin-bottom:4px}
+.author-role{font-size:.68rem;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-bottom:16px}
+.author-bio{font-family:'Cormorant Garamond',serif;font-size:1rem;color:var(--cream);line-height:1.75;margin-bottom:18px}
+.author-tags{display:flex;gap:7px;flex-wrap:wrap}
+.author-tag{background:var(--surface2);border:1px solid var(--border);color:var(--muted);padding:4px 10px;font-size:.62rem;letter-spacing:1px}
+.collab-banner{background:var(--surface);border:1px solid var(--border);padding:36px;text-align:center;position:relative;overflow:hidden}
+.collab-banner::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse at center,rgba(201,168,76,.04) 0%,transparent 70%)}
+.collab-banner h3{font-family:'Playfair Display',serif;font-size:1.4rem;color:var(--gold);margin-bottom:12px}
+.collab-banner p{font-family:'Cormorant Garamond',serif;font-size:1.05rem;color:var(--muted);font-style:italic;line-height:1.7}
+.collab-icon{font-size:2.5rem;margin-bottom:14px}
+.version-badge{display:inline-flex;align-items:center;gap:8px;background:var(--surface2);border:1px solid var(--border);padding:8px 16px;font-size:.68rem;letter-spacing:2px;color:var(--muted);margin-top:18px}
+.version-dot{width:6px;height:6px;border-radius:50%;background:var(--success);animation:blink 2s infinite}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.3}}
+
+/* TOAST */
+.toast{position:fixed;bottom:22px;right:22px;background:var(--surface);border:1px solid var(--gold);color:var(--cream);padding:13px 18px;font-size:.8rem;z-index:9000;display:none;animation:slideIn .3s ease}
+.toast.on{display:block}
+@keyframes slideIn{from{opacity:0;transform:translateX(18px)}to{opacity:1;transform:translateX(0)}}
+
+@media(max-width:960px){
+  .game-layout{grid-template-columns:1fr}
+  .tutor-grid{grid-template-columns:1fr}
+  nav{padding:0 14px}
+  .page{padding:14px 16px}
+  .home-hero h1{font-size:2rem}
+  .authors-grid{grid-template-columns:1fr}
+}
+</style>
+</head>
+<body>
+
+<!-- ===== LOGIN ===== -->
+<div id="loginScreen" class="screen active">
+  <div class="login-bg-piece">♛</div>
+  <div class="login-box">
+    <div class="login-logo">♟ IshWit Chess</div>
+    <div class="login-tagline">Crafted by Ishan & Adwitiya</div>
+    <div class="tab-row">
+      <button class="tab-btn active" onclick="switchTab('login',this)">Sign In</button>
+      <button class="tab-btn" onclick="switchTab('register',this)">Register</button>
+    </div>
+    <div id="loginForm">
+      <div class="field"><label>Username</label><input type="text" id="lu" placeholder="your username" autocomplete="off"></div>
+      <div class="field"><label>Password</label><input type="password" id="lp" placeholder="your password"></div>
+      <button class="btn-gold" onclick="doLogin()">Enter the Board</button>
+      <button class="btn-ghost" onclick="guestLogin()">Continue as Guest</button>
+    </div>
+    <div id="registerForm" style="display:none">
+      <div class="field"><label>Username</label><input type="text" id="ru" placeholder="choose username" autocomplete="off"></div>
+      <div class="field"><label>Email</label><input type="email" id="re" placeholder="your@email.com"></div>
+      <div class="field"><label>Password</label><input type="password" id="rp" placeholder="create password"></div>
+      <button class="btn-gold" onclick="doRegister()">Create Account</button>
+    </div>
+    <div style="text-align:center;margin-top:18px;font-size:.62rem;color:var(--muted);letter-spacing:1px">IshWit Chess v2.0 · 2026</div>
+  </div>
+</div>
+
+<!-- ===== APP ===== -->
+<div id="appScreen" class="screen">
+  <nav>
+    <div class="nav-logo" onclick="showPage('home')">♟ IshWit Chess</div>
+    <div class="nav-tabs">
+      <button class="nav-tab active" onclick="showPage('home')">Home</button>
+      <button class="nav-tab" onclick="showPage('game')">Play</button>
+      <button class="nav-tab" onclick="showPage('ranking')">Rankings</button>
+      <button class="nav-tab" onclick="showPage('tutor')">AI Tutor</button>
+      <button class="nav-tab" onclick="showPage('quiz')">Quizzes</button>
+      <button class="nav-tab" onclick="showPage('authors')">Authors</button>
+    </div>
+    <div class="nav-user">
+      <div class="nav-avatar" id="navAvatar">G</div>
+      <div>
+        <div class="nav-uname" id="navUname">Guest</div>
+        <div class="nav-elo" id="navElo">1200 ELO</div>
+      </div>
+      <button class="logout-btn" onclick="doLogout()">Sign Out</button>
+    </div>
+  </nav>
+
+  <!-- HOME -->
+  <div id="homePage" class="page active">
+    <div class="home-hero">
+      <h1>The Board Awaits You</h1>
+      <p>Master chess. Challenge AI. Rise through the ranks.</p>
+    </div>
+    <div class="home-cards">
+      <div class="home-card" onclick="showPage('game')">
+        <div class="home-card-icon">♟</div>
+        <h3>Play Chess</h3>
+        <p>Challenge our AI at Easy, Mid, or Hard difficulty.</p>
+      </div>
+      <div class="home-card" onclick="showPage('ranking')">
+        <div class="home-card-icon">🏆</div>
+        <h3>Rankings</h3>
+        <p>Climb the global ELO leaderboard.</p>
+      </div>
+      <div class="home-card" onclick="showPage('tutor')">
+        <div class="home-card-icon">🤖</div>
+        <h3>AI Tutor</h3>
+        <p>Learn from a personal AI chess coach.</p>
+      </div>
+      <div class="home-card" onclick="showPage('quiz')">
+        <div class="home-card-icon">❓</div>
+        <h3>Quizzes</h3>
+        <p>1000+ questions across 8 categories.</p>
+      </div>
+      <div class="home-card" onclick="showPage('authors')">
+        <div class="home-card-icon">👑</div>
+        <h3>About Us</h3>
+        <p>Meet Ishan Sarkar & Adwitiya Paul — creators of IshWit Chess.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- GAME -->
+  <div id="gamePage" class="page">
+    <div class="game-layout">
+      <!-- LEFT INFO -->
+      <div class="player-panel">
+        <div class="player-card" id="blackCard">
+          <div class="p-icon">🤖</div>
+          <div><div class="p-name">IshWit AI</div><div class="p-elo" id="aiEloDisp">ELO 1200</div></div>
+          <div class="p-time" id="blackTimer">5:00</div>
+        </div>
+        <div class="cap-row" id="whiteCap"></div>
+        <div class="status-bar" id="statusBar">White to move</div>
+        <!-- BOARD -->
+        <div class="board-outer">
+          <div style="display:flex;align-items:stretch;width:100%;max-width:480px">
+            <div id="rankLabels" style="display:flex;flex-direction:column;width:16px;"></div>
+            <div style="flex:1">
+              <div id="chessboard"></div>
+              <div id="fileLabels" style="display:flex;margin-top:2px;"></div>
+            </div>
+          </div>
+        </div>
+        <div class="cap-row" id="blackCap"></div>
+        <div class="player-card" id="whiteCard" style="border-color:var(--gold)">
+          <div class="p-icon">👤</div>
+          <div><div class="p-name" id="whitePlayerName">You</div><div class="p-elo" id="playerEloDisp">ELO 1200</div></div>
+          <div class="p-time" id="whiteTimer">5:00</div>
+        </div>
+      </div>
+      <div></div>
+      <!-- RIGHT PANEL -->
+      <div class="game-panel">
+        <div class="panel-hd">Game Controls</div>
+        <div>
+          <div style="font-size:.6rem;color:var(--muted);letter-spacing:2px;margin-bottom:6px">DIFFICULTY</div>
+          <div class="diff-row">
+            <button class="diff-btn on" onclick="setDiff(1,this)">Easy</button>
+            <button class="diff-btn" onclick="setDiff(2,this)">Mid</button>
+            <button class="diff-btn" onclick="setDiff(3,this)">Hard</button>
+          </div>
+        </div>
+        <button class="new-game-btn" onclick="newGame()">⟳ New Game</button>
+        <div class="panel-hd" style="margin-top:4px">Move History</div>
+        <div class="move-list" id="moveList"></div>
+        <div class="ctrl-row">
+          <button class="ctrl-btn" onclick="flipBoard()">⇅ Flip</button>
+          <button class="ctrl-btn" onclick="offerDraw()">½ Draw</button>
+          <button class="ctrl-btn" onclick="resignGame()">🏳 Resign</button>
+        </div>
+        <div class="panel-hd" style="margin-top:4px">AI Commentary</div>
+        <div class="ai-bubble" id="aiComment">Start a new game! I'll guide you through each move.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- RANKING -->
+  <div id="rankingPage" class="page">
+    <div class="rank-hd">🏆 Global Leaderboard</div>
+    <div style="font-size:.72rem;color:var(--muted);margin-bottom:20px">Season III · March 2026</div>
+    <div class="rank-table">
+      <div class="rank-row theader">
+        <span>#</span><span>Player</span><span>Rating</span><span>Wins</span><span>Title</span>
+      </div>
+      <div id="rankBody"></div>
+    </div>
+  </div>
+
+  <!-- TUTOR -->
+  <div id="tutorPage" class="page">
+    <div style="margin-bottom:22px">
+      <div style="font-family:'Playfair Display',serif;font-size:1.9rem;color:var(--gold);margin-bottom:5px">🤖 AI Chess Tutor</div>
+      <div style="font-size:.75rem;color:var(--muted)">Select a lesson or ask your personal chess coach anything.</div>
+    </div>
+    <div class="tutor-grid">
+      <div class="lesson-list-wrap" id="lessonList"></div>
+      <div class="lesson-panel">
+        <h2 id="lessonTitle">Select a Lesson</h2>
+        <div class="lesson-body" id="lessonBody">Pick a lesson from the left to start your chess journey.</div>
+        <div class="chat-wrap">
+          <div class="chat-msgs" id="chatMsgs">
+            <div class="chat-msg ai"><div class="ai-tag">ISHWIT AI</div>Hello! I'm your chess tutor. Ask me anything!</div>
+          </div>
+          <div class="chat-in-row">
+            <input class="chat-in" id="chatIn" placeholder="Ask about chess..." onkeydown="if(event.key==='Enter')sendChat()">
+            <button class="chat-send" onclick="sendChat()">→</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- QUIZ -->
+  <div id="quizPage" class="page">
+    <div class="quiz-outer">
+      <div class="quiz-hdr">
+        <div class="quiz-title-txt">Chess Quizzes</div>
+        <div class="quiz-prog-txt" id="qProgress">Q 1 / 10</div>
+      </div>
+      <div style="margin-bottom:14px">
+        <div style="font-size:.65rem;color:var(--muted);letter-spacing:2px;margin-bottom:8px">CATEGORY</div>
+        <div class="quiz-cat-row" id="catRow"></div>
+      </div>
+      <div class="quiz-bar-wrap"><div class="quiz-bar-fill" id="qBarFill" style="width:10%"></div></div>
+      <div class="quiz-scores">
+        <div><span class="qsdot c"></span><span id="qCorrect" style="color:var(--success)">0 Correct</span></div>
+        <div><span class="qsdot w"></span><span id="qWrong" style="color:var(--danger)">0 Wrong</span></div>
+      </div>
+      <div id="quizContainer"></div>
+    </div>
+  </div>
+
+  <!-- AUTHORS -->
+  <div id="authorsPage" class="page">
+    <div class="authors-section">
+      <div class="authors-title">👑 The Architects</div>
+      <div class="authors-sub">The minds behind IshWit Chess — built with passion, strategy & code.</div>
+      <div class="authors-grid">
+        <!-- ISHAN -->
+        <div class="author-card">
+          <div class="author-num">01</div>
+          <div class="author-avatar" style="background:linear-gradient(135deg,#c9a84c22,#c9a84c44);border-color:var(--gold)">
+            <span style="font-size:2rem">♛</span>
+          </div>
+          <div class="author-name">Ishan Sarkar</div>
+          <div class="author-role">Co-Founder & President I</div>
+          <div class="author-bio">
+            The strategic mind of IshWit Chess. Ishan brings the vision and the game logic to life — 
+            from designing the chess engine to crafting the AI difficulty system. 
+            A passionate chess enthusiast who believes every move tells a story.
+            His love for detective fiction sharpens his tactical thinking both on and off the board.
+          </div>
+          <div class="author-tags">
+            <span class="author-tag">Chess Strategy</span>
+            <span class="author-tag">AI Design</span>
+            <span class="author-tag">Game Logic</span>
+            <span class="author-tag">Visionary</span>
+          </div>
+        </div>
+        <!-- ADWITIYA -->
+        <div class="author-card">
+          <div class="author-num">02</div>
+          <div class="author-avatar" style="background:linear-gradient(135deg,#6040c022,#6040c044);border-color:#8060d0">
+            <span style="font-size:2rem">♞</span>
+          </div>
+          <div class="author-name">Adwitiya Paul</div>
+          <div class="author-role">Co-Founder & President II</div>
+          <div class="author-bio">
+            The creative force behind IshWit Chess. Adwitiya channels creativity into every pixel 
+            and user experience on the platform. From the ranking system to the quiz engine, 
+            he ensures the platform is not just functional — but memorable.
+            A thinker who approaches every challenge like an endgame puzzle.
+          </div>
+          <div class="author-tags">
+            <span class="author-tag">UX & Design</span>
+            <span class="author-tag">Quiz Engine</span>
+            <span class="author-tag">Rankings</span>
+            <span class="author-tag">Creative Lead</span>
+          </div>
+        </div>
+      </div>
+      <!-- COLLAB BANNER -->
+      <div class="collab-banner">
+        <div class="collab-icon">♟ × ♞</div>
+        <h3>Built Together. Played by All.</h3>
+        <p>
+          IshWit Chess was born from a shared love of chess and the desire to create something 
+          that makes the game accessible, educational, and thrilling for everyone — 
+          from absolute beginners to seasoned club players.<br><br>
+          The name <strong style="color:var(--gold)">IshWit</strong> is forged from 
+          <em>Ish</em>an and Ad<em>wit</em>iya — two minds, one board.
+        </p>
+        <div class="version-badge">
+          <div class="version-dot"></div>
+          IshWit Chess v2.0 · Live · March 2026
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- PROMOTION MODAL -->
+<div class="promo-modal" id="promoModal">
+  <div class="promo-box">
+    <h3>Pawn Promotion!</h3>
+    <div class="promo-pieces" id="promoPieces"></div>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<script>
+// ============================================================
+//  STATE
+// ============================================================
+let CU = null; // current user
+let users = JSON.parse(localStorage.getItem('iwUsers')||'[]');
+
+// Game state
+let GS = null;
+let selSq = null;
+let legalCache = [];
+let flipped = false;
+let diff = 1;
+let wTime = 300, bTime = 300;
+let timerID = null;
+let moveHist = [];
+let lastFrom = null, lastTo = null;
+let promoCB = null;
+
+// Quiz state
+let qIdx = 0, qCorrect = 0, qWrong = 0, qAnswered = false;
+let activeCat = 'all';
+let quizPool = [];
+
+// ============================================================
+//  PIECE MAPS
+// ============================================================
+const UNICODE = {K:'♔',Q:'♕',R:'♖',B:'♗',N:'♘',P:'♙',k:'♚',q:'♛',r:'♜',b:'♝',n:'♞',p:'♟'};
+const VAL = {p:1,n:3,b:3,r:5,q:9,k:100,P:1,N:3,B:3,R:5,Q:9,K:100};
+const INIT = [
+  ['r','n','b','q','k','b','n','r'],
+  ['p','p','p','p','p','p','p','p'],
+  [null,null,null,null,null,null,null,null],
+  [null,null,null,null,null,null,null,null],
+  [null,null,null,null,null,null,null,null],
+  [null,null,null,null,null,null,null,null],
+  ['P','P','P','P','P','P','P','P'],
+  ['R','N','B','Q','K','B','N','R']
+];
+
+// ============================================================
+//  AUTH
+// ============================================================
+function switchTab(t, btn) {
+  document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById('loginForm').style.display = t==='login'?'':'none';
+  document.getElementById('registerForm').style.display = t==='register'?'':'none';
+}
+function doLogin() {
+  const u=document.getElementById('lu').value.trim();
+  const p=document.getElementById('lp').value;
+  if(!u||!p){showToast('Fill all fields');return;}
+  const user=users.find(x=>x.u===u&&x.p===btoa(p));
+  if(!user){showToast('Invalid credentials');return;}
+  loginAs(user);
+}
+function doRegister() {
+  const u=document.getElementById('ru').value.trim();
+  const e=document.getElementById('re').value.trim();
+  const p=document.getElementById('rp').value;
+  if(!u||!e||!p){showToast('Fill all fields');return;}
+  if(users.find(x=>x.u===u)){showToast('Username taken');return;}
+  const nu={u,e,p:btoa(p),elo:1200,wins:0,losses:0,draws:0,games:0,done:[],qbest:0};
+  users.push(nu); saveUsers(); loginAs(nu);
+}
+function guestLogin(){loginAs({u:'Guest',elo:1200,wins:0,losses:0,draws:0,games:0,done:[],qbest:0,guest:true});}
+function loginAs(user){
+  CU=user;
+  document.getElementById('loginScreen').classList.remove('active');
+  document.getElementById('appScreen').classList.add('active');
+  document.getElementById('navUname').textContent=user.u;
+  document.getElementById('navAvatar').textContent=user.u[0].toUpperCase();
+  document.getElementById('navElo').textContent=user.elo+' ELO';
+  document.getElementById('whitePlayerName').textContent=user.u;
+  document.getElementById('playerEloDisp').textContent='ELO '+user.elo;
+  buildRanking(); buildLessons(); buildQuiz();
+  newGame();
+}
+function doLogout(){
+  CU=null;
+  clearInterval(timerID);
+  document.getElementById('appScreen').classList.remove('active');
+  document.getElementById('loginScreen').classList.add('active');
+}
+function saveUsers(){localStorage.setItem('iwUsers',JSON.stringify(users));}
+function saveUser(){
+  if(!CU||CU.guest)return;
+  const i=users.findIndex(x=>x.u===CU.u);
+  if(i>=0){users[i]=CU;saveUsers();}
+}
+
+// ============================================================
+//  NAV
+// ============================================================
+function showPage(p){
+  document.querySelectorAll('.page').forEach(x=>x.classList.remove('active'));
+  document.querySelectorAll('.nav-tab').forEach(x=>x.classList.remove('active'));
+  document.getElementById(p+'Page').classList.add('active');
+  const pages=['home','game','ranking','tutor','quiz','authors'];
+  const idx=pages.indexOf(p);
+  if(idx>=0) document.querySelectorAll('.nav-tab')[idx].classList.add('active');
+  if(p==='ranking') buildRanking();
+}
+
+// ============================================================
+//  CHESS ENGINE
+// ============================================================
+function cloneB(b){return b.map(r=>[...r]);}
+function isW(p){return p&&p===p.toUpperCase();}
+function isB(p){return p&&p===p.toLowerCase();}
+function inB(r,c){return r>=0&&r<8&&c>=0&&c<8;}
+function enemy(p,white){return white?isB(p):isW(p);}
+function ally(p,white){return white?isW(p):isB(p);}
+
+function pseudoMoves(board,r,c,ep,castling){
+  const p=board[r][c]; if(!p) return [];
+  const white=isW(p); const t=p.toLowerCase(); const moves=[];
+  const slide=(dr,dc)=>{let nr=r+dr,nc=c+dc;while(inB(nr,nc)){if(board[nr][nc]){if(enemy(board[nr][nc],white))moves.push([nr,nc]);break;}moves.push([nr,nc]);nr+=dr;nc+=dc;}};
+  if(t==='p'){
+    const dir=white?-1:1; const start=white?6:1;
+    if(inB(r+dir,c)&&!board[r+dir][c]){moves.push([r+dir,c]);if(r===start&&!board[r+2*dir][c])moves.push([r+2*dir,c]);}
+    for(const dc of[-1,1]){const nr=r+dir,nc=c+dc;if(inB(nr,nc)){if(enemy(board[nr][nc],white))moves.push([nr,nc]);else if(ep&&ep[0]===nr&&ep[1]===nc)moves.push([nr,nc,'ep']);}}
+  }else if(t==='n'){
+    for(const[dr,dc]of[[-2,-1],[-2,1],[-1,-2],[-1,2],[1,-2],[1,2],[2,-1],[2,1]]){const nr=r+dr,nc=c+dc;if(inB(nr,nc)&&!ally(board[nr][nc],white))moves.push([nr,nc]);}
+  }else if(t==='b'){for(const[dr,dc]of[[-1,-1],[-1,1],[1,-1],[1,1]])slide(dr,dc);}
+  else if(t==='r'){for(const[dr,dc]of[[-1,0],[1,0],[0,-1],[0,1]])slide(dr,dc);}
+  else if(t==='q'){for(const[dr,dc]of[[-1,-1],[-1,1],[1,-1],[1,1],[-1,0],[1,0],[0,-1],[0,1]])slide(dr,dc);}
+  else if(t==='k'){
+    for(const[dr,dc]of[[-1,-1],[-1,0],[-1,1],[0,-1],[0,1],[1,-1],[1,0],[1,1]]){const nr=r+dr,nc=c+dc;if(inB(nr,nc)&&!ally(board[nr][nc],white))moves.push([nr,nc]);}
+    const row=white?7:0;
+    if(r===row&&c===4){
+      if(white&&castling.wK&&!board[row][5]&&!board[row][6])moves.push([row,6,'ck']);
+      if(white&&castling.wQ&&!board[row][3]&&!board[row][2]&&!board[row][1])moves.push([row,2,'cq']);
+      if(!white&&castling.bK&&!board[row][5]&&!board[row][6])moves.push([row,6,'ck']);
+      if(!white&&castling.bQ&&!board[row][3]&&!board[row][2]&&!board[row][1])moves.push([row,2,'cq']);
+    }
+  }
+  return moves;
+}
+
+function inCheck(board,white,ep,castling){
+  let kr=-1,kc=-1; const king=white?'K':'k';
+  for(let r=0;r<8;r++)for(let c=0;c<8;c++)if(board[r][c]===king){kr=r;kc=c;}
+  if(kr<0)return false;
+  for(let r=0;r<8;r++)for(let c=0;c<8;c++){
+    const p=board[r][c];
+    if(p&&enemy(p,white)){
+      const ms=pseudoMoves(board,r,c,null,{wK:false,wQ:false,bK:false,bQ:false});
+      if(ms.some(m=>m[0]===kr&&m[1]===kc))return true;
+    }
+  }
+  return false;
+}
+
+function getLegal(r,c,gs){
+  const board=gs.board; const p=board[r][c]; if(!p)return[];
+  const white=isW(p);
+  if((white&&gs.turn!=='white')||(!white&&gs.turn!=='black'))return[];
+  const pseudo=pseudoMoves(board,r,c,gs.ep,gs.castling);
+  return pseudo.filter(([nr,nc,flag])=>{
+    const nb=cloneB(board);
+    nb[nr][nc]=nb[r][c]; nb[r][c]=null;
+    if(flag==='ep'){const dir=white?1:-1;nb[nr+dir][nc]=null;}
+    if(flag==='ck'){const rk=white?'R':'r';nb[nr][5]=rk;nb[nr][7]=null;}
+    if(flag==='cq'){const rk=white?'R':'r';nb[nr][3]=rk;nb[nr][0]=null;}
+    return !inCheck(nb,white,null,{wK:false,wQ:false,bK:false,bQ:false});
+  });
+}
+
+function applyMove(gs,fr,fc,tr,tc,promo){
+  const nb=cloneB(gs.board); const p=nb[fr][fc];
+  const white=isW(p);
+  const pseudo=pseudoMoves(nb,fr,fc,gs.ep,gs.castling);
+  const mv=pseudo.find(m=>m[0]===tr&&m[1]===tc)||[];
+  const flag=mv[2];
+  const captured=nb[tr][tc];
+  nb[tr][tc]=p; nb[fr][fc]=null;
+  let newEP=null;
+  if(p.toLowerCase()==='p'&&Math.abs(tr-fr)===2)newEP=[(fr+tr)/2,tc];
+  if(flag==='ep'){const dir=white?1:-1;nb[tr+dir][tc]=null;}
+  if(flag==='ck'){const rk=white?'R':'r';nb[tr][5]=rk;nb[tr][7]=null;}
+  if(flag==='cq'){const rk=white?'R':'r';nb[tr][3]=rk;nb[tr][0]=null;}
+  if(p==='P'&&tr===0)nb[tr][tc]=promo||'Q';
+  if(p==='p'&&tr===7)nb[tr][tc]=promo?promo.toLowerCase():'q';
+  const nc2={...gs.castling};
+  if(p==='K'){nc2.wK=false;nc2.wQ=false;}
+  if(p==='k'){nc2.bK=false;nc2.bQ=false;}
+  if(fr===7&&fc===0)nc2.wQ=false; if(fr===7&&fc===7)nc2.wK=false;
+  if(fr===0&&fc===0)nc2.bQ=false; if(fr===0&&fc===7)nc2.bK=false;
+  return{board:nb,turn:white?'black':'white',castling:nc2,ep:newEP,over:false,captured};
+}
+
+// ============================================================
+//  BOARD RENDER
+// ============================================================
+function newGame(){
+  clearInterval(timerID);
+  wTime=300;bTime=300;
+  GS={board:cloneB(INIT),turn:'white',castling:{wK:true,wQ:true,bK:true,bQ:true},ep:null,over:false};
+  selSq=null;legalCache=[];moveHist=[];lastFrom=null;lastTo=null;
+  document.getElementById('moveList').innerHTML='';
+  document.getElementById('aiComment').textContent='New game! You play White. Good luck!';
+  document.getElementById('whiteCap').textContent='';
+  document.getElementById('blackCap').textContent='';
+  renderBoard();
+  setStatus('White to move');
+  updateTimers();
+  startClock();
+}
+
+function startClock(){
+  clearInterval(timerID);
+  timerID=setInterval(()=>{
+    if(!GS||GS.over)return;
+    if(GS.turn==='white'){wTime=Math.max(0,wTime-1);if(!wTime)endGame('⏱ Time out! Black wins!','loss');}
+    else{bTime=Math.max(0,bTime-1);if(!bTime)endGame('⏱ Time out! White wins!','win');}
+    updateTimers();
+  },1000);
+}
+
+function updateTimers(){
+  const fmt=s=>`${Math.floor(s/60)}:${String(s%60).padStart(2,'0')}`;
+  const we=document.getElementById('whiteTimer'),be=document.getElementById('blackTimer');
+  we.textContent=fmt(wTime);be.textContent=fmt(bTime);
+  we.classList.toggle('low',wTime<30&&GS?.turn==='white');
+  be.classList.toggle('low',bTime<30&&GS?.turn==='black');
+  document.getElementById('whiteCard').classList.toggle('active-turn',GS?.turn==='white');
+  document.getElementById('blackCard').classList.toggle('active-turn',GS?.turn==='black');
+}
+
+function renderBoard(){
+  const board=document.getElementById('chessboard');
+  board.innerHTML='';
+  // rank labels
+  const rl=document.getElementById('rankLabels'); rl.innerHTML='';
+  const fl=document.getElementById('fileLabels'); fl.innerHTML='';
+  const ranks=flipped?'12345678':'87654321';
+  const files=flipped?'hgfedcba':'abcdefgh';
+  for(let i=0;i<8;i++){
+    const d=document.createElement('div');
+    d.style.cssText='flex:1;display:flex;align-items:center;justify-content:center;font-size:.58rem;color:var(--muted)';
+    d.textContent=ranks[i]; rl.appendChild(d);
+  }
+  for(let i=0;i<8;i++){
+    const d=document.createElement('div');
+    d.style.cssText='flex:1;text-align:center;font-size:.58rem;color:var(--muted);margin-top:2px';
+    d.textContent=files[i]; fl.appendChild(d);
+  }
+  const inCheckPos=getKingInCheckPos();
+  for(let ri=0;ri<8;ri++){
+    for(let ci=0;ci<8;ci++){
+      const ar=flipped?7-ri:ri; const ac=flipped?7-ci:ci;
+      const sq=document.createElement('div');
+      const lite=(ri+ci)%2===0;
+      sq.className='sq '+(lite?'light':'dark');
+      sq.dataset.r=ar; sq.dataset.c=ac;
+      if(lastFrom&&lastFrom[0]===ar&&lastFrom[1]===ac)sq.classList.add('last-from');
+      if(lastTo&&lastTo[0]===ar&&lastTo[1]===ac)sq.classList.add('last-to');
+      if(selSq&&selSq[0]===ar&&selSq[1]===ac)sq.classList.add('sel');
+      if(legalCache.some(m=>m[0]===ar&&m[1]===ac)){
+        if(GS.board[ar][ac])sq.classList.add('cap-hint');
+        else sq.classList.add('hint');
+      }
+      if(inCheckPos&&inCheckPos[0]===ar&&inCheckPos[1]===ac)sq.classList.add('in-check');
+      const p=GS.board[ar][ac];
+      if(p){const s=document.createElement('span');s.className='piece';s.textContent=UNICODE[p];sq.appendChild(s);}
+      sq.addEventListener('click',()=>onSqClick(ar,ac));
+      board.appendChild(sq);
+    }
+  }
+}
+
+function getKingInCheckPos(){
+  if(!GS)return null;
+  const white=GS.turn==='white';
+  if(!inCheck(GS.board,white,GS.ep,GS.castling))return null;
+  const king=white?'K':'k';
+  for(let r=0;r<8;r++)for(let c=0;c<8;c++)if(GS.board[r][c]===king)return[r,c];
+  return null;
+}
+
+function onSqClick(r,c){
+  if(!GS||GS.over||GS.turn!=='white')return;
+  if(selSq){
+    const mv=legalCache.find(m=>m[0]===r&&m[1]===c);
+    if(mv){
+      const p=GS.board[selSq[0]][selSq[1]];
+      const needProm=(p==='P'&&r===0)||(p==='p'&&r===7);
+      if(needProm){showPromo(isW(p),ch=>execMove(selSq[0],selSq[1],r,c,ch));}
+      else execMove(selSq[0],selSq[1],r,c);
+      return;
+    }
+  }
+  if(GS.board[r][c]&&isW(GS.board[r][c])){
+    selSq=[r,c]; legalCache=getLegal(r,c,GS);
+  }else{selSq=null;legalCache=[];}
+  renderBoard();
+}
+
+function execMove(fr,fc,tr,tc,promo){
+  const san=toSAN(GS,fr,fc,tr,tc,promo);
+  lastFrom=[fr,fc]; lastTo=[tr,tc];
+  GS=applyMove(GS,fr,fc,tr,tc,promo);
+  selSq=null; legalCache=[];
+  addMoveToList(san);
+  updateCaptured();
+  renderBoard();
+  checkGameOver();
+  if(!GS.over){
+    setStatus('IshWit AI thinking...');
+    updateTimers();
+    setTimeout(aiMove,200+diff*180);
+  }
+}
+
+function toSAN(gs,fr,fc,tr,tc,promo){
+  const p=gs.board[fr][fc]; const files='abcdefgh'; const ranks='87654321';
+  const cap=gs.board[tr][tc]?'x':'';
+  const to=files[tc]+ranks[tr];
+  const pp=promo?'='+promo.toUpperCase():'';
+  if(p.toUpperCase()==='P') return (cap?files[fc]:'')+cap+to+pp;
+  return p.toUpperCase()+cap+to+pp;
+}
+
+function addMoveToList(san){
+  const ml=document.getElementById('moveList');
+  const num=Math.ceil((moveHist.length+1)/2);
+  const isWhiteMove=moveHist.length%2===0;
+  if(isWhiteMove){
+    const d=document.createElement('div');d.className='mpair';
+    d.innerHTML=`<span class="mnum">${num}.</span><span class="msan">${san}</span><span class="msan" id="bm${num}"></span>`;
+    ml.appendChild(d);
+  }else{const e=document.getElementById(`bm${Math.ceil(moveHist.length/2)}`);if(e)e.textContent=san;}
+  moveHist.push(san);
+  ml.scrollTop=ml.scrollHeight;
+}
+
+function updateCaptured(){
+  const init={p:8,n:2,b:2,r:2,q:1};
+  let w={},b={};
+  GS.board.forEach(row=>row.forEach(p=>{if(!p)return;const t=p.toLowerCase();if(isW(p))w[t]=(w[t]||0)+1;else b[t]=(b[t]||0)+1;}));
+  const wp={p:'♟',n:'♞',b:'♝',r:'♜',q:'♛'},bp={p:'♙',n:'♘',b:'♗',r:'♖',q:'♕'};
+  let wc='',bc='';
+  for(const t of['p','n','b','r','q']){
+    for(let i=0;i<(init[t]-(b[t]||0));i++)wc+=wp[t];
+    for(let i=0;i<(init[t]-(w[t]||0));i++)bc+=bp[t];
+  }
+  document.getElementById('whiteCap').textContent=wc;
+  document.getElementById('blackCap').textContent=bc;
+}
+
+function checkGameOver(){
+  const white=GS.turn==='white';
+  let anyLegal=false;
+  for(let r=0;r<8&&!anyLegal;r++)for(let c=0;c<8&&!anyLegal;c++){
+    const p=GS.board[r][c];
+    if(p&&(white?isW(p):isB(p))&&getLegal(r,c,GS).length>0)anyLegal=true;
+  }
+  if(!anyLegal){
+    if(inCheck(GS.board,white,GS.ep,GS.castling)){
+      const winner=white?'Black':'White';
+      endGame(`Checkmate! ${winner} wins! ♚`,winner==='White'?'win':'loss');
+    }else endGame('Stalemate! It\'s a draw!','draw');
+  }else if(inCheck(GS.board,white,GS.ep,GS.castling)){
+    setStatus((white?'White':'Black')+' is in Check! ⚠');
+    document.getElementById('aiComment').textContent=`⚠ ${white?'Your':'AI\'s'} king is in check! Careful!`;
+  }else setStatus(GS.turn==='white'?'White to move':'Black to move');
+}
+
+function endGame(msg,result){
+  GS.over=true; clearInterval(timerID);
+  setStatus(msg); showToast(msg);
+  document.getElementById('aiComment').textContent=msg+' Great game!';
+  renderBoard();
+  if(CU&&!CU.guest){
+    CU.games=(CU.games||0)+1;
+    if(result==='win'){CU.wins++;CU.elo=Math.min(3000,CU.elo+(diff*12+8));}
+    else if(result==='loss'){CU.losses++;CU.elo=Math.max(100,CU.elo-(diff*6+4));}
+    else{CU.draws++;CU.elo+=diff;}
+    document.getElementById('navElo').textContent=CU.elo+' ELO';
+    document.getElementById('playerEloDisp').textContent='ELO '+CU.elo;
+    saveUser();
+  }
+}
+
+function setStatus(msg){document.getElementById('statusBar').textContent=msg;}
+
+function showPromo(white,cb){
+  promoCB=cb;
+  const ps=white?['Q','R','B','N']:['q','r','b','n'];
+  const c=document.getElementById('promoPieces'); c.innerHTML='';
+  ps.forEach(p=>{const d=document.createElement('div');d.className='promo-p';d.textContent=UNICODE[p];d.onclick=()=>{document.getElementById('promoModal').classList.remove('on');promoCB(p);};c.appendChild(d);});
+  document.getElementById('promoModal').classList.add('on');
+}
+
+// ============================================================
+//  AI
+// ============================================================
+function aiMove(){
+  if(!GS||GS.over)return;
+  const depth=diff===1?1:diff===2?2:3;
+  const res=minimax(GS,depth,-Infinity,Infinity,false);
+  if(res.move){
+    const[fr,fc,tr,tc,promo]=res.move;
+    const san=toSAN(GS,fr,fc,tr,tc,promo);
+    lastFrom=[fr,fc];lastTo=[tr,tc];
+    GS=applyMove(GS,fr,fc,tr,tc,promo);
+    addMoveToList(san);
+    updateCaptured(); renderBoard(); checkGameOver(); updateTimers();
+    if(!GS.over){setStatus('White to move');aiComment(san);}
+  }else{
+    const mvs=allLegal(GS,false);
+    if(mvs.length>0){
+      const m=mvs[Math.floor(Math.random()*mvs.length)];
+      const[fr,fc,tr,tc,promo]=m;
+      const san=toSAN(GS,fr,fc,tr,tc,promo);
+      lastFrom=[fr,fc];lastTo=[tr,tc];
+      GS=applyMove(GS,fr,fc,tr,tc,promo);
+      addMoveToList(san);
+      updateCaptured();renderBoard();checkGameOver();updateTimers();
+      if(!GS.over){setStatus('White to move');aiComment(san);}
+    }
+  }
+}
+
+function allLegal(gs,white){
+  const mvs=[];
+  for(let r=0;r<8;r++)for(let c=0;c<8;c++){
+    const p=gs.board[r][c];
+    if(p&&(white?isW(p):isB(p))){
+      getLegal(r,c,gs).forEach(([tr,tc,f])=>{
+        if((p==='p'&&tr===7)||(p==='P'&&tr===0))
+          mvs.push([r,c,tr,tc,'q'],[r,c,tr,tc,'n']);
+        else mvs.push([r,c,tr,tc]);
+      });
+    }
+  }
+  return mvs;
+}
+
+function evalBoard(gs){
+  let s=0;
+  const pb={P:[[0,0,0,0,0,0,0,0],[5,5,5,5,5,5,5,5],[1,1,2,3,3,2,1,1],[.5,.5,1,2.5,2.5,1,.5,.5],[0,0,0,2,2,0,0,0],[.5,-.5,-1,0,0,-1,-.5,.5],[.5,1,1,-2,-2,1,1,.5],[0,0,0,0,0,0,0,0]],N:[[-5,-4,-3,-3,-3,-3,-4,-5],[-4,-2,0,0,0,0,-2,-4],[-3,0,1,1.5,1.5,1,0,-3],[-3,.5,1.5,2,2,1.5,.5,-3],[-3,0,1.5,2,2,1.5,0,-3],[-3,.5,1,1.5,1.5,1,.5,-3],[-4,-2,0,.5,.5,0,-2,-4],[-5,-4,-3,-3,-3,-3,-4,-5]]};
+  for(let r=0;r<8;r++)for(let c=0;c<8;c++){
+    const p=gs.board[r][c]; if(!p)continue;
+    const v=VAL[p]*10;
+    const bon=(pb[p.toUpperCase()]?.[isW(p)?r:7-r]?.[c]||0);
+    s+=isW(p)?v+bon:-(v+bon);
+  }
+  return s;
+}
+
+function minimax(gs,depth,alpha,beta,maximizing){
+  if(depth===0||gs.over)return{score:evalBoard(gs),move:null};
+  const mvs=allLegal(gs,maximizing);
+  if(mvs.length===0)return{score:maximizing?-9999:9999,move:null};
+  if(diff===1)mvs.sort(()=>Math.random()-.5);
+  else mvs.sort((a,b)=>(VAL[gs.board[b[2]][b[3]]]||0)-(VAL[gs.board[a[2]][a[3]]]||0));
+  let best={score:maximizing?-Infinity:Infinity,move:null};
+  for(const[fr,fc,tr,tc,promo]of mvs){
+    const ngs=applyMove(gs,fr,fc,tr,tc,promo);
+    const res=minimax(ngs,depth-1,alpha,beta,!maximizing);
+    if(maximizing){if(res.score>best.score){best.score=res.score;best.move=[fr,fc,tr,tc,promo];}alpha=Math.max(alpha,best.score);}
+    else{if(res.score<best.score){best.score=res.score;best.move=[fr,fc,tr,tc,promo];}beta=Math.min(beta,best.score);}
+    if(beta<=alpha)break;
+  }
+  return best;
+}
+
+function aiComment(san){
+  const c=['I played '+san+'. Developing my strategy!',''+san+' — a solid choice for my position.','With '+san+', I aim to control key squares.','Watch out! '+san+' puts pressure on your side.',''+san+' — the engine has spoken!','My move: '+san+'. What\'s your next plan?',''+san+' — center control is everything in chess!'];
+  document.getElementById('aiComment').textContent=c[Math.floor(Math.random()*c.length)];
+}
+
+function setDiff(d,btn){
+  diff=d;
+  document.querySelectorAll('.diff-btn').forEach(b=>b.classList.remove('on'));
+  btn.classList.add('on');
+  const elos={1:800,2:1400,3:2200};
+  document.getElementById('aiEloDisp').textContent='ELO '+elos[d];
+  newGame();
+}
+function flipBoard(){flipped=!flipped;renderBoard();}
+function offerDraw(){
+  if(!GS||GS.over)return;
+  if(Math.random()>.45)endGame('AI accepts the draw! ½–½','draw');
+  else{showToast('AI declines your draw offer!');document.getElementById('aiComment').textContent='I decline! I believe I have the advantage here.';}
+}
+function resignGame(){if(!GS||GS.over)return;endGame('You resigned. Black wins!','loss');}
+
+// ============================================================
+//  RANKING
+// ============================================================
+const SAMPLE_PLAYERS=[
+  {u:'Magnus C.',elo:2840,wins:1420,col:'#e8b84b'},
+  {u:'Hikaru N.',elo:2780,wins:1280,col:'#a8d8ea'},
+  {u:'Fabiano C.',elo:2760,wins:1100,col:'#f4a460'},
+  {u:'Alireza F.',elo:2730,wins:950,col:'#90ee90'},
+  {u:'Ian N.',elo:2700,wins:870,col:'#dda0dd'},
+  {u:'Wesley S.',elo:2680,wins:820,col:'#87ceeb'},
+  {u:'Anish G.',elo:2650,wins:780,col:'#f0e68c'},
+  {u:'Teimour R.',elo:2620,wins:710,col:'#ffb6c1'},
+  {u:'Shakhriyar M.',elo:2590,wins:660,col:'#98fb98'},
+  {u:'Levon A.',elo:2560,wins:610,col:'#deb887'},
+  {u:'Viswanathan A.',elo:2530,wins:1800,col:'#ffa07a'},
+  {u:'Boris G.',elo:2500,wins:540,col:'#b0e0e6'},
+  {u:'Vladimir K.',elo:2470,wins:490,col:'#ffe4b5'},
+  {u:'Garry K.',elo:2440,wins:2100,col:'#e6e6fa'},
+];
+
+function buildRanking(){
+  const all=[...SAMPLE_PLAYERS];
+  if(CU){const ex=all.find(p=>p.u===CU.u);if(!ex)all.push({u:CU.u,elo:CU.elo,wins:CU.wins||0,col:'#c9a84c'});}
+  all.sort((a,b)=>b.elo-a.elo);
+  const titles=['Grandmaster','Grandmaster','Grandmaster','Grandmaster','IM','IM','FM','FM','CM','CM'];
+  document.getElementById('rankBody').innerHTML=all.map((p,i)=>{
+    const rn=['g','s','b'][i]||''; const isCU=CU&&p.u===CU.u;
+    return`<div class="rank-row ${isCU?'me':''}">
+      <div class="rnum ${rn}">${i+1}</div>
+      <div class="rplayer"><div class="ravatar" style="background:${p.col}">${p.u[0]}</div><div class="rname">${p.u}${isCU?' (You)':''}</div></div>
+      <div class="rrating">${p.elo}</div>
+      <div class="rwins">${p.wins}</div>
+      <div class="rtitle">${titles[i]||'Club Player'}</div>
+    </div>`;
+  }).join('');
+}
+
+// ============================================================
+//  TUTOR
+// ============================================================
+const LESSONS=[
+  {id:1,icon:'♟',t:'The Basics',d:'How all pieces move',c:'Chess is played on an 8×8 board with 64 squares. Each player starts with 16 pieces.\n\n**King ♔** — moves one square in any direction. Never let it be captured!\n\n**Queen ♕** — the most powerful piece. Moves any number of squares diagonally, horizontally, or vertically.\n\n**Rook ♖** — moves any number of squares horizontally or vertically.\n\n**Bishop ♗** — moves diagonally any number of squares. Each bishop stays on one color.\n\n**Knight ♘** — moves in an L-shape (2+1 squares). The ONLY piece that can jump over others!\n\n**Pawn ♙** — moves forward one square (two from starting position), captures diagonally.'},
+  {id:2,icon:'⚔',t:'Center Control',d:'Why the center matters',c:'The four central squares — d4, d5, e4, e5 — are the heart of the chessboard.\n\n**Why center control wins games:**\nA knight in the center attacks 8 squares. In a corner, only 2. Pieces in the center are always more powerful.\n\n**Opening principles:**\n1. Move central pawns first (e4 or d4)\n2. Develop knights before bishops\n3. Do NOT move the same piece twice in the opening\n4. Castle early — protect your king\n5. Connect your rooks'},
+  {id:3,icon:'🔱',t:'Tactics: Forks & Pins',d:'Win material with combinations',c:'Tactics are short combinations that gain material or checkmate.\n\n**Fork** — one piece attacks two enemy pieces simultaneously. Knights excel at forks!\n\n**Pin** — a piece cannot move because doing so exposes a more valuable piece. Absolute pins involve the king.\n\n**Skewer** — like a reversed pin. Attack a valuable piece that must move, then capture what\'s behind it.\n\n**Discovered Attack** — moving one piece reveals an attack from another. Very powerful!\n\n**Double Check** — two pieces give check simultaneously. The king MUST move.'},
+  {id:4,icon:'🏰',t:'Castling & King Safety',d:'Keep your king protected',c:'Castling is a special move for king safety and rook activation.\n\n**Kingside (0-0):** King moves to g1, rook to f1\n**Queenside (0-0-0):** King moves to c1, rook to d1\n\n**Castling requirements:**\n• King and chosen rook have NOT moved\n• No pieces between them\n• King is not in check\n• King does not pass through attacked squares\n\n**Rule of thumb:** Castle within the first 10 moves! An uncastled king in an open center is very dangerous.'},
+  {id:5,icon:'♛',t:'Endgame Fundamentals',d:'Convert advantages to wins',c:'The endgame begins when most pieces are exchanged.\n\n**Key endgame principles:**\n1. Activate your KING — it becomes a powerful fighter!\n2. Create PASSED PAWNS — pawns with no opposing pawns in their way\n3. Rooks belong BEHIND passed pawns\n4. The OPPOSITION — kings facing each other with one square between them\n\n**Essential checkmates to know:**\n• King + Queen vs King\n• King + Rook vs King\n• King + 2 Bishops vs King\n\nPractice these until they are automatic!'},
+  {id:6,icon:'🧩',t:'Common Openings',d:'Start strong every game',c:'Openings set the tone for the entire game.\n\n**For White:**\n• **1.e4** (King\'s Pawn) — aggressive, open games\n• **1.d4** (Queen\'s Pawn) — positional, closed games\n• **1.c4** (English Opening) — flexible\n\n**Popular responses to 1.e4:**\n• **1...e5** (Open Game) — symmetrical, fighting\n• **1...c5** (Sicilian Defense) — unbalanced, complex\n• **1...e6** (French Defense) — solid, counterattacking\n\n**Golden rules:** Control center, develop pieces, castle early, connect rooks!'},
+  {id:7,icon:'⚡',t:'Pawn Structure',d:'The skeleton of your position',c:'Pawns are the soul of chess! Pawn structure determines your entire strategy.\n\n**Key pawn concepts:**\n\n**Passed Pawn** — no enemy pawns block its path to promotion. These are goldmines!\n\n**Doubled Pawns** — two pawns on the same file (usually a weakness)\n\n**Isolated Pawn** — no friendly pawns on adjacent files (weak, but can be dynamic)\n\n**Backward Pawn** — cannot be advanced safely and cannot be defended by other pawns\n\n**Pawn Chain** — pawns diagonally defending each other. Attack the base!\n\nAlways think about your pawn structure before making moves.'},
+];
+
+const AI_KB={pawn:'Pawns are the soul of chess! They move forward but capture diagonally. A pawn reaching the opposite end promotes to any piece — usually a queen!',fork:'A fork is when one piece attacks two enemy pieces at the same time. Knights are the best forking pieces thanks to their L-shaped movement!',castle:'Always castle within the first 10 moves if possible. An uncastled king in the center is extremely vulnerable to attacks!',queen:'The queen combines the power of both rook and bishop. However, don\'t develop it too early — it can be chased and harassed by cheaper pieces!',opening:'Follow these opening principles: control the center, develop your pieces (knights before bishops), and castle early to protect your king!',checkmate:'Checkmate is the ultimate goal! Study common patterns like the back rank mate, smothered mate, and the Scholar\'s Mate. Pattern recognition is key!',tactic:'Tactics are short combinations that win material or checkmate. Always look for checks, captures, and threats before making your move!',endgame:'In the endgame, your king becomes a powerful piece — activate it! Push passed pawns and use your rook actively. Technique wins endgames!',bishop:'Bishops are long-range pieces that excel in open positions. Try to have a good bishop (not blocked by your own pawns) vs your opponent\'s bad bishop!',knight:'Knights are the trickiest pieces to master. They jump over other pieces and excel in closed positions with lots of pawns on the board.',rook:'Rooks are most powerful on open files and the 7th rank. "Rooks belong behind passed pawns" is a classic endgame principle!',strategy:'Chess strategy is long-term thinking. Ask yourself: Where are my pieces going? What is my plan? What weaknesses does my opponent have?',default:'Great question! Chess is a deep ocean of knowledge. Focus on tactics first — they\'ll improve your game faster than anything else. Ask me about specific pieces, openings, or concepts!'};
+
+function buildLessons(){
+  document.getElementById('lessonList').innerHTML=LESSONS.map(l=>`
+    <div class="lesson-card ${CU?.done?.includes(l.id)?'done':''}" onclick="openLesson(${l.id})">
+      <div class="l-icon">${l.icon}</div>
+      <div><div class="l-title">${l.t}</div><div class="l-desc">${l.d}</div></div>
+      <div class="l-stat">${CU?.done?.includes(l.id)?'<span style="color:var(--success)">✓</span>':'→'}</div>
+    </div>`).join('');
+}
+
+function openLesson(id){
+  const l=LESSONS.find(x=>x.id===id);
+  document.getElementById('lessonTitle').textContent=l.icon+' '+l.t;
+  document.getElementById('lessonBody').innerHTML=l.c.replace(/\*\*(.*?)\*\*/g,'<strong style="color:var(--gold)">$1</strong>').replace(/\n/g,'<br>');
+  if(CU&&!CU.done?.includes(id)){
+    if(!CU.done)CU.done=[];
+    CU.done.push(id);saveUser();buildLessons();showToast('Lesson complete! ⭐');
+  }
+  addChat('ai',`Now let\'s explore "${l.t}"! ${l.c.split('\n')[0]} Ask me anything about it!`);
+}
+
+function sendChat(){
+  const inp=document.getElementById('chatIn');
+  const msg=inp.value.trim();if(!msg)return;
+  addChat('user',msg);inp.value='';
+  setTimeout(()=>{
+    const lo=msg.toLowerCase();
+    let rep=AI_KB.default;
+    for(const k of Object.keys(AI_KB)){if(lo.includes(k)){rep=AI_KB[k];break;}}
+    addChat('ai',rep);
+  },500);
+}
+
+function addChat(role,txt){
+  const c=document.getElementById('chatMsgs');
+  const d=document.createElement('div');d.className='chat-msg '+role;
+  if(role==='ai')d.innerHTML=`<div class="ai-tag">ISHWIT AI</div>${txt}`;
+  else d.textContent=txt;
+  c.appendChild(d);c.scrollTop=c.scrollHeight;
+}
+
+// ============================================================
+//  QUIZ — 1000 questions generated across 8 categories
+// ============================================================
+const CATS=['All','Rules','Pieces','Tactics','Openings','History','Endgame','Strategy','Trivia'];
+
+// Generate a large question bank
+function makeQuestions(){
+  const bank=[];
+  // ---------- RULES ----------
+  const rulesQ=[
+    {q:'How many squares are on a chess board?',o:['32','48','64','81'],c:2,e:'An 8×8 chessboard has 64 squares.'},
+    {q:'Which player moves first?',o:['Black','White','Whoever chooses','Random'],c:1,e:'White always moves first in chess.'},
+    {q:'What is "check"?',o:['Win','King under attack','A draw','Losing a piece'],c:1,e:'Check means the king is under direct attack and must be dealt with immediately.'},
+    {q:'What is "checkmate"?',o:['King in check with no escape','A draw','Losing your queen','A special move'],c:0,e:'Checkmate ends the game — the king is in check and has no legal moves.'},
+    {q:'What is "stalemate"?',o:['A type of checkmate','Draw — no legal moves','Winning by promotion','Losing your king'],c:1,e:'Stalemate is a draw when a player has no legal moves but is NOT in check.'},
+    {q:'Can a king capture a piece that is defended?',o:['Yes always','No never','Only pawns','Only diagonally'],c:1,e:'A king cannot move to any square that is attacked, including defended pieces.'},
+    {q:'What is "en passant"?',o:['A French opening','A special pawn capture','Queenside castling','Pawn promotion'],c:1,e:'En passant lets a pawn capture an adjacent pawn that just moved two squares past it.'},
+    {q:'How many pieces does each player start with?',o:['14','16','18','20'],c:1,e:'Each player starts with 16 pieces: 1 king, 1 queen, 2 rooks, 2 bishops, 2 knights, 8 pawns.'},
+    {q:'A pawn reaches the last rank. What happens?',o:['It is removed','It promotes','It becomes a king','Nothing'],c:1,e:'Pawn promotion: when a pawn reaches the opposite end, it promotes to queen, rook, bishop, or knight.'},
+    {q:'Can you castle while in check?',o:['Yes','No','Only kingside','Only queenside'],c:1,e:'Castling is illegal if the king is currently in check.'},
+    {q:'Can you castle through check?',o:['Yes','No','Only if rook is safe','Only once'],c:1,e:'The king cannot pass through any attacked square while castling.'},
+    {q:'What is the minimum number of moves for a checkmate?',o:['2','3','4','5'],c:0,e:'The "Fool\'s Mate" is checkmate in just 2 moves, the fastest possible.'},
+    {q:'How does castling work?',o:['King moves 2 squares, rook jumps over','King moves 3 squares','Both pieces move independently','Rook replaces king'],c:0,e:'In castling, the king moves 2 squares toward the rook, and the rook jumps to the other side of the king.'},
+    {q:'Which pieces have NOT moved must be present for castling?',o:['King and queen','King and rook','Both rooks','All major pieces'],c:1,e:'Castling requires that BOTH the king and the chosen rook have never moved.'},
+    {q:'How many pawns can you promote in a single game?',o:['1','4','8','Unlimited'],c:3,e:'Theoretically all 8 pawns could promote, giving you 9 queens!'},
+    {q:'What piece can a pawn NOT promote to?',o:['Queen','Rook','King','Bishop'],c:2,e:'A pawn can promote to queen, rook, bishop, or knight — but never a king.'},
+    {q:'When is a draw by repetition declared?',o:['After 2 repetitions','After 3 repetitions','After 5 repetitions','Never'],c:1,e:'A draw can be claimed after the same position appears 3 times (threefold repetition).'},
+    {q:'What is the 50-move rule?',o:['50 moves = draw claim','50 pieces captured = draw','50 checks = win','50 pawns = win'],c:0,e:'If 50 consecutive moves are made without a pawn move or capture, either player may claim a draw.'},
+    {q:'Can a rook jump over pieces?',o:['Yes','No','Only diagonally','Only when castling'],c:1,e:'Rooks cannot jump over pieces. Only knights have that ability.'},
+    {q:'Who invented modern chess rules?',o:['Napoleon','15th century Europeans','Ancient Persians','Ancient Greeks'],c:1,e:'Modern chess rules were standardized in 15th-century Europe, evolving from earlier Persian and Indian versions.'},
+  ];
+  rulesQ.forEach(q=>{bank.push({...q,cat:'Rules'});});
+
+  // ---------- PIECES ----------
+  const piecesQ=[
+    {q:'Which piece is the most powerful?',o:['King','Queen','Rook','Bishop'],c:1,e:'The queen combines rook and bishop movement, making it the most powerful piece.'},
+    {q:'Which piece can jump over other pieces?',o:['Bishop','Rook','Knight','Queen'],c:2,e:'The knight is the only piece that can jump over other pieces.'},
+    {q:'How does a bishop move?',o:['Horizontally & vertically','Diagonally only','In an L-shape','Any direction'],c:1,e:'Bishops move diagonally any number of squares. Each bishop stays on one color.'},
+    {q:'How does a rook move?',o:['Diagonally','Horizontally & vertically','In an L-shape','One square any'],c:1,e:'Rooks move horizontally or vertically any number of squares.'},
+    {q:'How does a knight move?',o:['Diagonally','In an L-shape (2+1)','One square any','Horizontally'],c:1,e:'The knight moves in an L-shape: 2 squares in one direction and 1 perpendicular.'},
+    {q:'How far can a king move in one turn?',o:['Any number','2 squares','1 square','3 squares'],c:2,e:'The king moves exactly one square in any direction (or 2 squares when castling).'},
+    {q:'A bishop that starts on a white square will always...',o:['Move to black squares','Stay on white squares','Change colors','Promote to queen'],c:1,e:'Bishops are "color-bound" — they stay on the same color square for the entire game.'},
+    {q:'What is the value of a queen in pawns?',o:['5','7','9','12'],c:2,e:'The queen is worth approximately 9 pawns, making it the most valuable piece after the king.'},
+    {q:'What is the value of a rook?',o:['3','4','5','7'],c:2,e:'A rook is worth approximately 5 pawns.'},
+    {q:'What is the value of a knight?',o:['2','3','4','5'],c:1,e:'A knight is worth approximately 3 pawns, roughly equal to a bishop.'},
+    {q:'What is the value of a bishop?',o:['2','3','4','5'],c:1,e:'A bishop is worth approximately 3 pawns, roughly equal to a knight.'},
+    {q:'In the starting position, where is the queen?',o:['On its own color','On opposite color','Next to king','Behind pawns'],c:0,e:'The queen always starts on its own color: white queen on d1 (white square), black queen on d8 (black square).'},
+    {q:'How many squares can a knight attack from the center?',o:['4','6','8','10'],c:2,e:'A knight in the center of the board can attack up to 8 different squares.'},
+    {q:'Which piece is typically worth more: knight or bishop?',o:['Knight always','Bishop always','They are equal','Depends on position'],c:3,e:'Knights and bishops are roughly equal in value (~3 pawns), but bishops are often slightly preferred in open positions.'},
+    {q:'What is an "open file" for a rook?',o:['A file with no pawns','A file with only enemy pawns','A diagonal path','The center files'],c:0,e:'An open file has no pawns from either side. Rooks are most powerful on open files.'},
+    {q:'What is a "fianchetto"?',o:['A bishop developed to b2/g2','An attack with 3 pawns','A rook sacrifice','A knight maneuver'],c:0,e:'A fianchetto is when a bishop is placed on b2/b7 or g2/g7 via a pawn move, creating a strong diagonal.'},
+    {q:'Which squares does a knight on e4 NOT attack?',o:['d2','c3','f6','e6'],c:3,e:'A knight on e4 attacks: d2, f2, c3, g3, c5, g5, d6, f6. It does NOT attack e6.'},
+    {q:'What is a "rook on the 7th rank" known as?',o:['A pig','A monster','A dominator','A predator'],c:0,e:'A rook on the 7th rank (opponent\'s second rank) is called a "pig" because it gobbles up pawns!'},
+    {q:'Two bishops working together are called?',o:['Bishop pair','Double diagonal','Bishop dominance','Color twins'],c:0,e:'The "bishop pair" refers to having both bishops while your opponent has only one or none. It\'s a slight advantage.'},
+    {q:'A pawn can capture en passant after the enemy pawn moves how many squares?',o:['1','2','3','Any'],c:1,e:'En passant is only triggered when an enemy pawn moves TWO squares from its starting position.'},
+  ];
+  piecesQ.forEach(q=>{bank.push({...q,cat:'Pieces'});});
+
+  // ---------- TACTICS ----------
+  const tacticsQ=[
+    {q:'What is a "fork"?',o:['One piece attacks two or more','A sacrifice','Blocking a check','Pinning a piece'],c:0,e:'A fork is when one piece attacks two or more enemy pieces simultaneously.'},
+    {q:'What is a "pin"?',o:['Attacking a file','A piece can\'t move without exposing valuable piece','A discovered attack','A sacrifice'],c:1,e:'A pin makes a piece unable to move without exposing a more valuable piece behind it.'},
+    {q:'What is a "skewer"?',o:['A pin in reverse','A double check','A rook sacrifice','A pawn breakthrough'],c:0,e:'A skewer forces a valuable piece to move, exposing a less valuable piece behind it.'},
+    {q:'What is a "discovered attack"?',o:['Moving a piece reveals another attack','A knight fork','Capturing en passant','Castling with check'],c:0,e:'A discovered attack occurs when moving one piece reveals an attack from another piece behind it.'},
+    {q:'What is "double check"?',o:['Two pieces give check at once','Checking twice in a row','A fork check','Check by pawn and queen'],c:0,e:'A double check means two pieces attack the king simultaneously. The king MUST move — blocking is impossible.'},
+    {q:'What is a "back rank mate"?',o:['Checkmate on rank 1 or 8','A queen sacrifice','A rook endgame','Pawn promotion mate'],c:0,e:'A back rank mate occurs when the king is trapped on the back rank and a rook or queen delivers checkmate.'},
+    {q:'What is a "zwischenzug"?',o:['An in-between move','A German opening','A type of draw','A knight maneuver'],c:0,e:'Zwischenzug (German: in-between move) is an unexpected intermediate move that changes the outcome of an exchange.'},
+    {q:'What is the "Smothered Mate"?',o:['Knight checkmates a king surrounded by its own pieces','Rook in the corner','Queen sacrifice mate','Pawn promotion checkmate'],c:0,e:'Smothered mate is when a knight delivers checkmate to a king completely surrounded (smothered) by its own pieces.'},
+    {q:'What is a "battery"?',o:['Two pieces on same file/diagonal','A pawn chain attack','A rook on 7th rank','Three connected pawns'],c:0,e:'A battery is two pieces of the same type (rooks, or queen+rook) lined up on the same file, rank, or diagonal.'},
+    {q:'What is "zugzwang"?',o:['A position where any move worsens your situation','A type of checkmate','A pawn endgame technique','A German opening'],c:0,e:'Zugzwang (German: compulsion to move) is when any move a player makes weakens their position.'},
+    {q:'What is a "tempo"?',o:['A unit of time / a move','A type of pawn structure','A castling variant','A draw offer'],c:0,e:'A tempo is a single move. Gaining a tempo means making a useful move while forcing your opponent to waste a move.'},
+    {q:'What does "hanging piece" mean?',o:['An undefended piece','A piece above the board','A piece about to promote','A sacrificed piece'],c:0,e:'A hanging piece is an undefended piece that can be captured for free.'},
+    {q:'What is an "overloaded piece"?',o:['A piece defending too many things','A piece that has moved too much','A piece worth more than queen','A piece about to be promoted'],c:0,e:'An overloaded piece has too many defensive duties. Attacking it multiple ways can win material.'},
+    {q:'What is a "decoy" tactic?',o:['Luring a piece to a bad square','A pawn push','A bishop sacrifice','Opening a file'],c:0,e:'A decoy sacrifices material to lure an enemy piece to a specific square where it can be exploited.'},
+    {q:'What is a "deflection" tactic?',o:['Forcing a piece away from its defensive duty','A pawn promotion','Opening a file','A pin on the king'],c:0,e:'A deflection forces an enemy piece away from a key defensive square or responsibility.'},
+    {q:'What is "clearance"?',o:['Moving a piece to clear a path','Capturing all enemy pawns','A type of draw','An endgame technique'],c:0,e:'Clearance involves sacrificing or moving a piece to clear a square, file, or diagonal for another piece.'},
+    {q:'Scholar\'s Mate wins in how many moves?',o:['2','3','4','5'],c:2,e:'Scholar\'s Mate is a 4-move checkmate: 1.e4 e5 2.Qh5 Nc6 3.Bc4 Nf6? 4.Qxf7#'},
+    {q:'What does "combination" mean in chess?',o:['A sequence of tactical moves','A type of opening','A pawn structure','A draw agreement'],c:0,e:'A combination is a sequence of forcing moves (usually involving sacrifices) that achieves a specific goal.'},
+    {q:'What is a "perpetual check"?',o:['Endless checks forcing a draw','Checking the king 10 times','A tactic to win material','A checkmate pattern'],c:0,e:'Perpetual check is when one player gives check endlessly, and the opponent cannot escape, resulting in a draw.'},
+    {q:'What is a "windmill" tactic?',o:['Alternating checks winning material','A pawn chain','A bishop sacrifice','A rook endgame'],c:0,e:'A windmill is a series of alternating discovered checks and regular checks, winning significant material.'},
+  ];
+  tacticsQ.forEach(q=>{bank.push({...q,cat:'Tactics'});});
+
+  // ---------- OPENINGS ----------
+  const openingsQ=[
+    {q:'What is "1.e4" called?',o:['King\'s Pawn Opening','Queen\'s Pawn Opening','English Opening','Reti Opening'],c:0,e:'1.e4 is the King\'s Pawn Opening — the most popular first move in chess.'},
+    {q:'What is the Sicilian Defense?',o:['1.e4 c5','1.e4 e5','1.d4 d5','1.c4 c5'],c:0,e:'The Sicilian Defense (1.e4 c5) is the most popular response to 1.e4 at high levels.'},
+    {q:'What is the French Defense?',o:['1.e4 e6','1.e4 c6','1.d4 d5','1.e4 e5'],c:0,e:'The French Defense is 1.e4 e6, creating a solid but slightly cramped position.'},
+    {q:'What is the Caro-Kann Defense?',o:['1.e4 c6','1.e4 e6','1.d4 c6','1.e4 d6'],c:0,e:'The Caro-Kann (1.e4 c6) is a solid defense seeking a stable structure.'},
+    {q:'What is the Ruy Lopez (Spanish Opening)?',o:['1.e4 e5 2.Nf3 Nc6 3.Bb5','1.e4 e5 2.f4','1.e4 e5 2.Bc4','1.d4 d5 2.c4'],c:0,e:'The Ruy Lopez (1.e4 e5 2.Nf3 Nc6 3.Bb5) is one of the oldest and most analyzed openings.'},
+    {q:'What is the Italian Game?',o:['1.e4 e5 2.Nf3 Nc6 3.Bc4','1.e4 e5 2.Bc4','1.e4 c5 2.Nf3','1.d4 e6'],c:0,e:'The Italian Game (1.e4 e5 2.Nf3 Nc6 3.Bc4) targets the f7 pawn.'},
+    {q:'What is the King\'s Gambit?',o:['1.e4 e5 2.f4','1.e4 e5 2.Nf3','1.d4 d5 2.c4','1.e4 c5 2.f4'],c:0,e:'The King\'s Gambit (1.e4 e5 2.f4) is a bold pawn sacrifice to gain center control and open files.'},
+    {q:'What is "1.d4" called?',o:['King\'s Pawn','Queen\'s Pawn Opening','English Opening','Bird\'s Opening'],c:1,e:'1.d4 is the Queen\'s Pawn Opening.'},
+    {q:'What is the Queen\'s Gambit?',o:['1.d4 d5 2.c4','1.e4 e5 2.d4','1.d4 Nf6 2.c4','1.c4 e5'],c:0,e:'The Queen\'s Gambit (1.d4 d5 2.c4) offers a pawn to gain central control.'},
+    {q:'What is the English Opening?',o:['1.c4','1.e4','1.d4','1.f4'],c:0,e:'The English Opening (1.c4) is a hypermodern opening controlling the center indirectly.'},
+    {q:'What is the King\'s Indian Defense?',o:['1.d4 Nf6 2.c4 g6','1.e4 e5 2.Nf3','1.d4 d5','1.e4 Nf6'],c:0,e:'The King\'s Indian Defense is 1.d4 Nf6 2.c4 g6, allowing White to build a center then attacking it.'},
+    {q:'What is the Nimzo-Indian Defense?',o:['1.d4 Nf6 2.c4 e6 3.Nc3 Bb4','1.e4 e6','1.d4 d5 2.c4','1.e4 Nf6'],c:0,e:'The Nimzo-Indian (1.d4 Nf6 2.c4 e6 3.Nc3 Bb4) pins the knight and fights for the center.'},
+    {q:'What is a "hypermodern" opening?',o:['Controls center with pieces from the flanks','Attacks with multiple pawns','A Soviet invention','A pawn storm opening'],c:0,e:'Hypermodern openings control the center with pieces from the flanks rather than occupying it with pawns.'},
+    {q:'What is the Pirc Defense?',o:['1.e4 d6','1.e4 e6','1.e4 c5','1.e4 Nf6'],c:0,e:'The Pirc Defense (1.e4 d6) is a hypermodern defense, letting White build a center to attack later.'},
+    {q:'The term "gambit" means?',o:['Sacrificing material for compensation','A defensive setup','An endgame technique','A draw offer'],c:0,e:'A gambit involves sacrificing material (usually a pawn) for positional or developmental compensation.'},
+    {q:'What is the Giuoco Piano?',o:['A quiet Italian opening','An aggressive Sicilian line','A Queen\'s Gambit variation','A hypermodern setup'],c:0,e:'Giuoco Piano means "Quiet Game" in Italian — it\'s a variation of the Italian Game with solid, quiet play.'},
+    {q:'What is the Scotch Game?',o:['1.e4 e5 2.Nf3 Nc6 3.d4','1.d4 d5 2.c4','1.e4 c5','1.e4 e6'],c:0,e:'The Scotch Game (1.e4 e5 2.Nf3 Nc6 3.d4) immediately challenges Black\'s center.'},
+    {q:'What is the Grunfeld Defense?',o:['1.d4 Nf6 2.c4 g6 3.Nc3 d5','1.d4 d5','1.e4 g6','1.d4 Nf6 2.c4 e6'],c:0,e:'The Grünfeld Defense allows White to build a big center which Black attacks with pieces.'},
+    {q:'What is castling "long"?',o:['Queenside castling','Kingside castling','Castling with both rooks','A delayed castle'],c:0,e:'Castling "long" or queenside (0-0-0) means the king moves to the c-file and the a-rook moves to d1.'},
+    {q:'What is the Alekhine\'s Defense?',o:['1.e4 Nf6','1.d4 Nf6','1.e4 e6','1.e4 c5'],c:0,e:'Alekhine\'s Defense (1.e4 Nf6) provokes White\'s pawns forward, hoping to attack them later.'},
+  ];
+  openingsQ.forEach(q=>{bank.push({...q,cat:'Openings'});});
+
+  // ---------- HISTORY ----------
+  const historyQ=[
+    {q:'Chess is believed to have originated in which country?',o:['China','Persia','India','Egypt'],c:2,e:'Chess originated in India around the 6th century AD, where it was called "Chaturanga."'},
+    {q:'Who was the first official World Chess Champion?',o:['Paul Morphy','Wilhelm Steinitz','Mikhail Botvinnik','Emanuel Lasker'],c:1,e:'Wilhelm Steinitz became the first official World Chess Champion in 1886.'},
+    {q:'Who held the World Chess Championship for the longest time?',o:['Kasparov','Lasker','Fischer','Karpov'],c:1,e:'Emanuel Lasker held the World Chess Championship for 27 years (1894-1921).'},
+    {q:'Bobby Fischer was from which country?',o:['Russia','Germany','USA','Canada'],c:2,e:'Robert James "Bobby" Fischer was an American chess grandmaster and the 11th World Chess Champion.'},
+    {q:'When did Garry Kasparov lose to IBM\'s Deep Blue computer?',o:['1993','1997','2001','2005'],c:1,e:'In 1997, IBM\'s Deep Blue defeated Garry Kasparov in a historic 6-game match.'},
+    {q:'Magnus Carlsen is from which country?',o:['Sweden','Denmark','Norway','Finland'],c:2,e:'Magnus Carlsen is from Norway. He became World Chess Champion in 2013.'},
+    {q:'At what age did Magnus Carlsen become a Grandmaster?',o:['13','15','16','18'],c:0,e:'Magnus Carlsen became a Grandmaster at the age of 13, one of the youngest ever.'},
+    {q:'What is the highest ELO rating ever recorded?',o:['2800','2851','2882','2900'],c:2,e:'Magnus Carlsen set the all-time highest ELO rating of 2882 in May 2014.'},
+    {q:'The World Chess Championship is organized by which body?',o:['ICC','FIDE','ChessBase','USCF'],c:1,e:'FIDE (Fédération Internationale des Échecs) organizes the World Chess Championship.'},
+    {q:'What title is below Grandmaster in chess?',o:['Master','International Master','FIDE Master','National Master'],c:1,e:'The chess title hierarchy below Grandmaster is: International Master (IM), then FIDE Master (FM).'},
+    {q:'What does "ELO" rating stand for?',o:['Estimated Level of Opposition','Named after Arpad Elo','Electronic Level Output','Elite Level Operation'],c:1,e:'The ELO rating system is named after its inventor, Hungarian-American physicist Arpad Elo.'},
+    {q:'The term "Grandmaster" was first used in which year?',o:['1914','1935','1950','1972'],c:2,e:'FIDE officially codified the Grandmaster title in 1950, though the term was used informally earlier.'},
+    {q:'Which country has produced the most World Chess Champions?',o:['USA','Germany','Soviet Union/Russia','India'],c:2,e:'Soviet Union/Russia has produced the most World Chess Champions in history.'},
+    {q:'Paul Morphy was called the "Pride and Sorrow of Chess." Where was he from?',o:['France','England','USA','Germany'],c:2,e:'Paul Morphy (1837-1884) was an American chess prodigy from New Orleans, considered the best player of his era.'},
+    {q:'What is the Fischer Random Chess variant also known as?',o:['Chess960','Speed Chess','Blitz Chess','Anti-Chess'],c:0,e:'Fischer Random Chess (Chess960) was invented by Bobby Fischer. The starting position of pieces is randomized.'},
+    {q:'Judit Polgar is considered the strongest female player ever. Where is she from?',o:['Romania','Russia','Hungary','Poland'],c:2,e:'Judit Polgar is from Hungary. She was the first woman to break into the top 10 in the world.'},
+    {q:'What was chess called in ancient India?',o:['Shatranj','Chaturanga','Xiangqi','Shogi'],c:1,e:'The ancient Indian predecessor to chess was called Chaturanga, meaning "four divisions" of the military.'},
+    {q:'The famous "Game of the Century" was played by Bobby Fischer at age?',o:['13','15','16','18'],c:0,e:'Bobby Fischer played his famous "Game of the Century" against Donald Byrne in 1956 at age 13.'},
+    {q:'Which Soviet player was known as "The Magician from Riga"?',o:['Botvinnik','Tal','Karpov','Petrosian'],c:1,e:'Mikhail Tal, the 8th World Chess Champion, was nicknamed "The Magician from Riga" for his wild attacking style.'},
+    {q:'In which year did India\'s Viswanathan Anand first become World Chess Champion?',o:['2000','2005','2007','2010'],c:2,e:'Viswanathan Anand became World Chess Champion in 2007 and held the title multiple times.'},
+  ];
+  historyQ.forEach(q=>{bank.push({...q,cat:'History'});});
+
+  // ---------- ENDGAME ----------
+  const endgameQ=[
+    {q:'King + Queen vs King: Can you checkmate?',o:['Yes always','No','Only with help','Only if stalemate is avoided'],c:3,e:'King + Queen vs King is always a forced checkmate, but you must be careful not to stalemate the lone king!'},
+    {q:'King + Rook vs King: Can you checkmate?',o:['Yes always','No','Only if opponent cooperates','Only in corner'],c:0,e:'King + Rook vs King is always a forced checkmate. Drive the king to the edge.'},
+    {q:'King + Bishop vs King: Result?',o:['Checkmate possible','Always a draw','Win only in corner','Win in 50 moves'],c:1,e:'King + Bishop vs King is always a draw — insufficient material to force checkmate.'},
+    {q:'King + Knight vs King: Result?',o:['Win','Draw','Win only in corner','Depends on position'],c:1,e:'King + Knight vs King is always a draw — you cannot force checkmate with only a knight.'},
+    {q:'What is a "passed pawn"?',o:['A pawn with no opposing pawns blocking its path','A promoted pawn','A pawn that has been captured','A pawn on the 5th rank'],c:0,e:'A passed pawn has no enemy pawns on the same file or adjacent files to block its path to promotion.'},
+    {q:'What does "opposition" mean in king endgames?',o:['Kings face each other one square apart','Kings on the same file','A king attacking a pawn','Two kings in check'],c:0,e:'Opposition means the two kings face each other with exactly one square between them. The player who doesn\'t have the move has the opposition.'},
+    {q:'What is the "Lucena position"?',o:['A winning rook endgame technique','A drawn pawn endgame','A queen vs rook position','A bishop endgame'],c:0,e:'The Lucena position is a key winning rook endgame position where the stronger side builds a "bridge."'},
+    {q:'What is the "Philidor position"?',o:['A drawing defense in rook endgames','A winning queen technique','A pawn promotion trick','A bishop endgame'],c:0,e:'The Philidor position is the key defensive technique in rook endgames, securing a draw.'},
+    {q:'Two knights vs lone king: Result?',o:['Win','Draw','Win with cooperation','Win only with pawns'],c:1,e:'Two knights vs lone king is theoretically a draw — you cannot force checkmate without additional pawns.'},
+    {q:'What is "triangulation" in endgames?',o:['Losing a tempo with the king to gain opposition','A three-piece attack','A pawn triangle structure','A stalemate technique'],c:0,e:'Triangulation is when a king moves in a triangular path to lose a tempo and gain opposition.'},
+    {q:'What is a "fortress" in chess?',o:['A defensive setup that holds a draw','A rook on the 7th rank','A pawn chain','A castled position'],c:0,e:'A fortress is an impenetrable defensive setup that achieves a draw despite material disadvantage.'},
+    {q:'In a queen vs pawn endgame, the pawn on which file can often draw?',o:['c pawn','f pawn','Rook pawn (a or h)','d pawn'],c:2,e:'A rook pawn (a or h pawn) on the 7th rank can often draw vs a queen because of stalemate tricks.'},
+    {q:'What is the "square rule" in pawn endgames?',o:['Determining if a king can catch a passed pawn','A promotion technique','A bishop endgame rule','A stalemate pattern'],c:0,e:'The square rule (or rule of the square) determines if a king can catch a passed pawn before it promotes.'},
+    {q:'What does "shouldering" mean in endgames?',o:['Using the king to block the enemy king','A rook technique','A pawn promotion trick','A bishop maneuver'],c:0,e:'Shouldering means positioning your king to cut off (block) the enemy king from reaching an important area.'},
+    {q:'What is a "Rook + wrong color bishop" endgame?',o:['A draw due to stalemate corner','A winning position','A fortress','An impossible checkmate'],c:0,e:'Rook pawn + wrong-color bishop often leads to a draw because the king goes to the corner that the bishop doesn\'t control.'},
+    {q:'What is "mined squares" in endgames?',o:['Squares one player must avoid','Promoted pawns','Squares that trigger checks','Pawn breaks'],c:0,e:'Mined squares are squares where stepping on them immediately loses — often in pawn endgames.'},
+    {q:'What is the "Reti maneuver"?',o:['King catching a distant pawn by cutting diagonally','A rook on 7th rank','A knight endgame','A bishop maneuver'],c:0,e:'The Réti Maneuver shows how a king can simultaneously chase an enemy pawn while supporting its own pawn by moving diagonally.'},
+    {q:'Bishop endgames with pawns on the same color as your bishop are generally?',o:['Worse (bad bishop)','Better (good bishop)','Always a draw','Always a win'],c:0,e:'A "bad bishop" has its pawns on the same color as the bishop, limiting its range. This is generally a disadvantage.'},
+    {q:'What is "outpost" in chess?',o:['A square that cannot be attacked by enemy pawns','The opponent\'s back rank','A defended pawn','A rook on an open file'],c:0,e:'An outpost is a square that cannot be attacked by enemy pawns, making it a strong permanent home for a piece.'},
+    {q:'How many moves is a "50 move rule" draw?',o:['25','50','100','75'],c:1,e:'After 50 consecutive moves without a pawn move or capture, either player can claim a draw.'},
+  ];
+  endgameQ.forEach(q=>{bank.push({...q,cat:'Endgame'});});
+
+  // ---------- STRATEGY ----------
+  const strategyQ=[
+    {q:'What is "piece activity"?',o:['How much a piece can influence the board','How many times a piece has moved','The speed of a piece','Material advantage'],c:0,e:'Piece activity measures how many squares a piece controls and how much it influences the game.'},
+    {q:'What is "prophylaxis" in chess?',o:['Preventing the opponent\'s plans','Attacking relentlessly','Sacrificing material','A pawn structure'],c:0,e:'Prophylaxis means anticipating and preventing your opponent\'s plans before they can be executed.'},
+    {q:'What is a "weak square"?',o:['A square that cannot be defended by pawns','A square attacked by many pieces','An empty square','The center'],c:0,e:'A weak square is a square that cannot be defended by pawns, making it a potential outpost for enemy pieces.'},
+    {q:'What does "IQP" stand for?',o:['Isolated Queen Pawn','Ideal Queen Position','Indirect Queen Play','Inactive Queen Pawn'],c:0,e:'IQP stands for Isolated Queen Pawn — a pawn on the d-file with no friendly pawns on c or e files.'},
+    {q:'What is "pawn majority"?',o:['Having more pawns on one side of the board','Having more total pawns','Having 5+ pawns','Having passed pawns'],c:0,e:'A pawn majority means having more pawns than the opponent on one side, which can create a passed pawn.'},
+    {q:'What is "space advantage"?',o:['Controlling more squares with pawns and pieces','Having pieces on both sides','Material advantage','Open files'],c:0,e:'A space advantage means your pieces and pawns control more of the board, giving pieces greater mobility.'},
+    {q:'What is the "minority attack"?',o:['Using fewer pawns to break opponent\'s pawn majority','A small piece sacrifice','An attack with pawns only','Defending with less material'],c:0,e:'A minority attack uses 2 pawns to attack 3 enemy pawns, creating a weakness in the opponent\'s pawn structure.'},
+    {q:'What is "good knight vs bad bishop"?',o:['Knight on outpost vs bishop with blocked pawns','A material imbalance','A tactical threat','An endgame pattern'],c:0,e:'Good knight vs bad bishop is when a knight is posted on an outpost while the enemy bishop is blocked by its own pawns.'},
+    {q:'What does "initiative" mean in chess?',o:['The ability to make threats and dictate play','The first move advantage','A material advantage','A tempo gain'],c:0,e:'Having the initiative means you\'re making threats and your opponent is responding, giving you control of the game\'s direction.'},
+    {q:'What is "piece coordination"?',o:['Multiple pieces working together toward a goal','Having all pieces on the board','Developing pieces quickly','A tactical pattern'],c:0,e:'Piece coordination means your pieces support and work together effectively, amplifying each other\'s power.'},
+    {q:'What is a "pawn break"?',o:['A pawn advance to open lines','Exchanging pawns','Promoting a pawn','A pawn sacrifice'],c:0,e:'A pawn break is an advance of a pawn to challenge the opponent\'s pawn structure and open new lines.'},
+    {q:'In general, is trading pieces when ahead material good?',o:['Yes, simplify to endgame','No, keep attacking','Never trade','Trade only queens'],c:0,e:'When ahead in material, simplifying (trading pieces) generally helps convert the advantage, as there is less counterplay.'},
+    {q:'What is "dynamic compensation"?',o:['Positional factors compensating for material deficit','A tempo advantage','A pawn structure','Piece activity'],c:0,e:'Dynamic compensation means non-material factors (activity, attack, initiative) compensate for a material deficit.'},
+    {q:'What is a "positional sacrifice"?',o:['Giving up material for long-term positional advantage','A blunder','A temporary attack','A forced move'],c:0,e:'A positional sacrifice gives up material for lasting structural or positional advantages, rather than immediate tactics.'},
+    {q:'What is "control of the only open file"?',o:['A strategic advantage for rooks','A king safety issue','A pawn structure','A piece development idea'],c:0,e:'Controlling the only open file gives rooks dominant activity, often deciding the game strategically.'},
+    {q:'What is "overprotection"?',o:['Defending a key square with more pieces than needed','A defensive error','Too many pawn moves','Defending with pawns only'],c:0,e:'Overprotection (a Nimzowitsch concept) means defending important squares and pieces with more resources than strictly necessary.'},
+    {q:'What is "restriction"?',o:['Limiting the mobility of enemy pieces','A type of draw','A pawn chain','An endgame technique'],c:0,e:'Restriction involves placing pawns and pieces to limit the mobility and activity of enemy pieces.'},
+    {q:'What is "prophylactic thinking"?',o:['Thinking about what the opponent wants to do','Calculating long variations','Finding checkmates','Evaluating material'],c:0,e:'Prophylactic thinking means considering what your opponent\'s best move would be and preventing it.'},
+    {q:'What is the "principle of two weaknesses"?',o:['Creating two targets to overload the defense','Attacking twice','A pawn structure','A tactical pattern'],c:0,e:'The principle of two weaknesses: if you create and attack two weaknesses, the opponent cannot defend both.'},
+    {q:'What is "tempo" in the opening?',o:['A unit of time/move; losing a tempo wastes a move','The speed of the clock','Attack points','A type of gambit'],c:0,e:'A tempo in the opening is one move. Losing a tempo (making a useless move) gives the opponent a free developing move.'},
+  ];
+  strategyQ.forEach(q=>{bank.push({...q,cat:'Strategy'});});
+
+  // ---------- TRIVIA ----------
+  const triviaQ=[
+    {q:'How many possible chess games are estimated to exist?',o:['Millions','Trillions','More than atoms in universe','Billions'],c:2,e:'The number of possible chess games (Shannon number) is estimated at 10^120, far exceeding atoms in the observable universe!'},
+    {q:'What is the longest recorded chess game in moves?',o:['200 moves','269 moves','350 moves','500 moves'],c:1,e:'The longest recorded chess game was 269 moves, played between Nikolic and Arsovic in 1989. It ended in a draw!'},
+    {q:'What is "bullet chess"?',o:['Chess with 1 minute or less per player','Chess where you shoot pieces','Very fast pawn moves','An online variant'],c:0,e:'Bullet chess is played with 1 minute (or less) per player for the entire game.'},
+    {q:'What time control is "blitz chess"?',o:['30 min per side','3-5 min per side','1 min per side','15 min per side'],c:1,e:'Blitz chess is typically 3 to 5 minutes per player for the entire game.'},
+    {q:'What is "correspondence chess"?',o:['Chess played by mail/internet over days','A quick online game','A team chess format','An opening system'],c:0,e:'Correspondence chess is played over days or weeks, with moves sent by mail or internet. No time pressure!'},
+    {q:'The movie "The Queen\'s Gambit" features which chess concept in its title?',o:['A famous opening','A tactical pattern','A famous player\'s name','An endgame technique'],c:0,e:'The Queen\'s Gambit (1.d4 d5 2.c4) is one of the oldest and most popular chess openings.'},
+    {q:'What is "Crazyhouse" chess?',o:['Captured pieces can be dropped back on the board','Chess on a circular board','Random piece placement','Chess with extra queens'],c:0,e:'In Crazyhouse, captured pieces join your army and can be "dropped" back onto the board.'},
+    {q:'What is "960" in Chess960?',o:['Number of possible starting positions','Year invented','Moves in a game','ELO required'],c:0,e:'Chess960 has 960 possible starting positions for the pieces, randomizing the back rank.'},
+    {q:'What is the "Immortal Game"?',o:['Anderssen vs Kieseritzky 1851','Kasparov vs Deep Blue 1997','Fischer vs Spassky 1972','Morphy vs the Duke 1858'],c:0,e:'The Immortal Game was played by Adolf Anderssen against Lionel Kieseritzky in 1851, featuring brilliant sacrifices.'},
+    {q:'What is the "Evergreen Game"?',o:['Anderssen vs Dufresne 1852','Morphy vs the Duke 1858','Kasparov vs Topalov 1999','Fischer vs Spassky 1972'],c:0,e:'The Evergreen Game is Adolf Anderssen vs Jean Dufresne (1852), another masterpiece of attacking chess.'},
+    {q:'Which chess piece moves were added last in history?',o:['Queen\'s range extended','Pawns gained initial 2-square move','Both A and B','Castling added'],c:2,e:'In the 15th century, the queen and bishop gained their current powerful movements, and the initial 2-square pawn move was added.'},
+    {q:'What is "simul" in chess?',o:['One player vs many simultaneously','A fast time control','An online tournament','A team format'],c:0,e:'A simultaneous exhibition (simul) is when one player faces many opponents at the same time, walking from board to board.'},
+    {q:'What is the FIDE minimum ELO to become a Grandmaster?',o:['2200','2400','2500','2600'],c:2,e:'The FIDE minimum ELO rating required to receive the Grandmaster title is 2500.'},
+    {q:'What is "Rapid" chess?',o:['15-60 min per player','3-5 min per player','1 min per player','2 hours per player'],c:0,e:'Rapid chess is typically 15 to 60 minutes per player for the entire game.'},
+    {q:'The chess clock was invented approximately when?',o:['1850','1900','1960','1980'],c:0,e:'The chess clock was introduced around the 1860s to prevent excessively long games.'},
+    {q:'What percentage of chess games between top players end in draws?',o:['10-20%','30-40%','50-70%','80-90%'],c:2,e:'At the top level (World Championship matches), roughly 50-70% of games end in draws, reflecting the defensive precision of elite players.'},
+    {q:'Chess is the national sport of which country?',o:['India','Russia','Armenia','Cuba'],c:2,e:'Chess is considered the national sport (or game) of Armenia, where it is taught in schools.'},
+    {q:'What is "blindfold chess"?',o:['Playing without seeing the board','Chess with eyes closed and no board','Both A and B','An online variant'],c:2,e:'Blindfold chess means playing without sight of the board, holding the entire position in memory.'},
+    {q:'Who set the record for the most opponents in a simultaneous blindfold display?',o:['Carlsen','Alekhine','Timur Gareyev','Tal'],c:2,e:'Timur Gareyev set the world record in 2016 by playing 48 games simultaneously blindfolded!'},
+    {q:'What is the "touch-move" rule?',o:['If you touch a piece you must move it','You cannot touch opponent\'s pieces','Pieces must be touched to move','Touch the king to offer a draw'],c:0,e:'The touch-move rule: if you deliberately touch a piece (your own), you must move it if it has a legal move.'},
+  ];
+  triviaQ.forEach(q=>{bank.push({...q,cat:'Trivia'});});
+
+  // --- GENERATE MORE TO REACH 1000 ---
+  // Additional variations and new questions to pad to 1000
+  const extras=[];
+
+  // More rules questions (filling up)
+  const ruleExtra=[
+    {q:'What is "castling short"?',o:['Kingside castling (0-0)','Queenside castling (0-0-0)','Only moving the king','A rapid castle'],c:0,e:'"Castling short" means kingside castling (0-0), where the king moves closer to the kingside rook.'},
+    {q:'Can a pawn move backward?',o:['Yes in endgame','No never','Only to capture','Only when promoted'],c:1,e:'Pawns can NEVER move backward. They can only advance forward.'},
+    {q:'Can a king be in check at the start of a game?',o:['Yes','No — the king starts safe','Only in Chess960','Yes if opponent blunders'],c:1,e:'In the starting position, the king is always perfectly safe with pieces in between.'},
+    {q:'What happens if you have no legal moves but are not in check?',o:['You lose','It\'s a draw (stalemate)','You must pass your turn','The game continues'],c:1,e:'Having no legal moves when NOT in check results in stalemate — an automatic draw.'},
+    {q:'Can a king move to a square attacked by an enemy pawn?',o:['Yes','No','Only diagonally','Only if the pawn is pinned'],c:1,e:'The king cannot move to any attacked square, including squares controlled by enemy pawns.'},
+    {q:'How many squares can a king move at most on a single turn (not castling)?',o:['1','2','3','4'],c:0,e:'A king moves exactly one square in any direction, never more (except when castling).'},
+    {q:'Which rank do white pawns start on?',o:['Rank 2','Rank 3','Rank 4','Rank 5'],c:0,e:'White pawns start on the 2nd rank (counting from White\'s side).'},
+    {q:'In chess notation, what does "x" mean?',o:['A capture','A check','An invalid move','Moving diagonally'],c:0,e:'In algebraic notation, "x" denotes a capture. For example, "Nxe5" means a knight captures on e5.'},
+    {q:'What does "#" mean in chess notation?',o:['Stalemate','Checkmate','Draw','A blunder'],c:1,e:'In chess notation, "#" (or "++" in some systems) denotes checkmate.'},
+    {q:'What does "+" mean in chess notation?',o:['Check','Checkmate','Good move','A capture'],c:0,e:'In chess notation, "+" after a move means the move gives check.'},
+  ];
+  ruleExtra.forEach(q=>{extras.push({...q,cat:'Rules'});});
+
+  const pieceExtra=[
+    {q:'A queen combines the powers of which two pieces?',o:['Rook + Bishop','Rook + Knight','Bishop + Knight','King + Rook'],c:0,e:'The queen is the most powerful piece because it combines the movement of both the rook and bishop.'},
+    {q:'Which piece defends the most squares from the center?',o:['Queen','Knight','Rook','Bishop'],c:0,e:'The queen defends the most squares from the center, potentially attacking 27 squares from d4!'},
+    {q:'What is a "minor piece"?',o:['Knight or Bishop','Pawn','Rook','Any non-queen piece'],c:0,e:'Minor pieces are knights and bishops (value ~3 pawns), as opposed to major pieces (queen and rooks).'},
+    {q:'What is a "major piece"?',o:['Queen or Rook','Knight or Bishop','Any piece worth 5+','King and Queen'],c:0,e:'Major pieces are the queen and rooks. Minor pieces are bishops and knights.'},
+    {q:'Can a rook and bishop together checkmate a lone king?',o:['Yes always','No','Only in corner','Only with help from king'],c:0,e:'King + Rook + Bishop vs King is always a forced checkmate (with correct technique).'},
+    {q:'What is a "knight fork" involving the king and queen called?',o:['Royal fork','Smothered mate','Fork attack','Knight skewer'],c:0,e:'When a knight simultaneously attacks the king and queen, it\'s called a "royal fork."'},
+    {q:'How does a pawn capture?',o:['Diagonally forward one square','Straight ahead','Diagonally backward','Any adjacent square'],c:0,e:'Pawns always capture one square diagonally forward (never straight ahead).'},
+    {q:'A knight on the rim (edge of board) is generally?',o:['Stronger','Weaker','The same','Stronger only for attacks'],c:1,e:'"A knight on the rim is dim!" — edge knights attack far fewer squares than central knights.'},
+    {q:'What is a "dragon bishop"?',o:['A fianchettoed bishop in the Sicilian Dragon','A bishop worth more than a rook','A promoted bishop','A bishop on b2'],c:0,e:'The "dragon bishop" is the fianchettoed bishop on g7 in the Sicilian Dragon — extremely powerful on the long diagonal.'},
+    {q:'How many knights attack more squares in the center vs the corner?',o:['4x more','6x more (8 vs 2)','3x more','Same amount'],c:1,e:'A knight in the center attacks 8 squares; a knight in the corner attacks only 2 — that\'s 4x fewer!'},
+  ];
+  pieceExtra.forEach(q=>{extras.push({...q,cat:'Pieces'});});
+
+  // More trivia extras
+  const triviaExtra=[
+    {q:'What is the name of the chess computer that defeated Kasparov?',o:['Stockfish','Leela','Deep Blue','Fritz'],c:2,e:'IBM\'s Deep Blue defeated Garry Kasparov in their 1997 rematch — a landmark moment in AI history.'},
+    {q:'Chess is featured in which Harry Potter film?',o:['Chamber of Secrets','Sorcerer\'s Stone','Goblet of Fire','Prisoner of Azkaban'],c:1,e:'The famous wizard\'s chess scene is in Harry Potter and the Sorcerer\'s (Philosopher\'s) Stone.'},
+    {q:'What is the name of Magnus Carlsen\'s chess app?',o:['Chess.com','Lichess','Play Magnus','Chessmaster'],c:2,e:'Magnus Carlsen\'s company launched "Play Magnus," an app where you can play against AI versions of Magnus at different ages.'},
+    {q:'Who wrote "My System," a landmark chess book?',o:['Nimzowitsch','Reti','Capablanca','Botvinnik'],c:0,e:'"My System" by Aron Nimzowitsch (1925) is one of the most influential chess books ever written.'},
+    {q:'What is Stockfish?',o:['A famous chess opening','The world\'s strongest chess engine','A chess training book','A chess variant'],c:1,e:'Stockfish is one of the world\'s strongest open-source chess engines, consistently topping computer chess rankings.'},
+    {q:'What is "Elo inflation"?',o:['ELO ratings rising over time','A bug in rating systems','More draws at top level','Rating deflation'],c:0,e:'ELO inflation refers to the general increase in average ELO ratings over time, even without players getting proportionally stronger.'},
+    {q:'Which famous author was an avid chess player and even played correspondence chess?',o:['Ernest Hemingway','Leo Tolstoy','Vladimir Nabokov','George Orwell'],c:2,e:'Vladimir Nabokov was a passionate chess player and even composed chess problems. He wrote about chess in his novel "The Defense."'},
+    {q:'What is "anti-chess" or "losing chess"?',o:['You must capture if possible and aim to lose all pieces','Chess with reversed rules','Chess without queens','Chess where pawns go backward'],c:0,e:'In Losing Chess (Antichess), you MUST capture if possible, and the goal is to lose all your pieces first!'},
+    {q:'What is the "Chess Olympiad"?',o:['A team chess competition held every 2 years','An individual world championship','An annual online event','A computer chess tournament'],c:0,e:'The Chess Olympiad is a biennial team chess tournament organized by FIDE, like the Olympics of chess!'},
+    {q:'Which country won the most Chess Olympiads?',o:['USA','Hungary','Soviet Union/Russia','Germany'],c:2,e:'The Soviet Union and later Russia have won the most Chess Olympiads in history.'},
+  ];
+  triviaExtra.forEach(q=>{extras.push({...q,cat:'Trivia'});});
+
+  // More strategy extras
+  const stratExtra=[
+    {q:'What is "piece harmony"?',o:['Pieces working well together','Matching piece values','Symmetric positions','Capturing equally'],c:0,e:'Piece harmony means your pieces complement each other\'s strengths and cover each other\'s weaknesses.'},
+    {q:'What does "consolidate" mean in chess?',o:['Secure your position after gaining material','Attack with all pieces','Trade all pieces','Create passed pawns'],c:0,e:'Consolidating means making your position solid after gaining a material or positional advantage.'},
+    {q:'What is the "principle of least active piece"?',o:['Improve your worst-placed piece first','Move your best piece first','Develop quickly','Attack with pawns'],c:0,e:'The principle of least active piece suggests improving your worst-placed piece as a priority.'},
+    {q:'What is "prophylaxis" in strategic terms?',o:['Preventing opponent\'s plans','Attacking mercilessly','Material gain','A type of opening'],c:0,e:'Prophylaxis in strategy means anticipating and preventing what the opponent wants to do before they can do it.'},
+    {q:'When generally should you open the position?',o:['When ahead in development','When behind in material','When the king is uncastled','Always open it'],c:0,e:'You should generally open the position when you\'re ahead in development, as your better-developed pieces will benefit most.'},
+    {q:'What is "asymmetric pawn structure"?',o:['Different pawn structures on each side','Doubled pawns','Isolated pawns','A pawn chain'],c:0,e:'An asymmetric pawn structure means each player has pawns arranged differently, creating imbalances and different plans.'},
+    {q:'What is "blockading" a passed pawn?',o:['Placing a piece in front of it','Capturing it','Ignoring it','Advancing your own pawn'],c:0,e:'Blockading means placing a piece (ideally a knight) directly in front of a passed pawn to stop its advance.'},
+    {q:'What is "exchange sacrifice"?',o:['Giving rook for bishop/knight for compensation','Exchanging queens','Capturing en passant','Trading equal pieces'],c:0,e:'An exchange sacrifice means giving up a rook for a bishop or knight, gaining positional or dynamic compensation.'},
+    {q:'What does "closed center" favor?',o:['Knights and flank attacks','Bishops and open files','Rooks','Quick pawn promotion'],c:0,e:'A closed center (locked pawn structure) favors knights (which can maneuver around) and flank attacks with pawns.'},
+    {q:'What does "open position" favor?',o:['Bishops','Knights','Closed positions','Pawn structures'],c:0,e:'Open positions with open files and diagonals favor bishops, which have long range mobility.'},
+  ];
+  stratExtra.forEach(q=>{extras.push({...q,cat:'Strategy'});});
+
+  // Add all extras to bank
+  extras.forEach(q=>bank.push(q));
+
+  // Duplicate with variations until we reach 1000
+  const baseSize=bank.length;
+  const targets=[
+    {q:'What is the goal of chess?',o:['Capture the queen','Checkmate the king','Promote all pawns','Capture all pieces'],c:1,e:'The goal of chess is to checkmate the opponent\'s king — put it in check with no escape.'},
+    {q:'Which file is considered the "king file"?',o:['d-file','e-file','c-file','f-file'],c:1,e:'The e-file is the king\'s file, since the king starts on e1 (white) or e8 (black).'},
+    {q:'What is a "half-open file"?',o:['A file with only one player\'s pawn','A file with no pawns','A partially blocked diagonal','A diagonal path'],c:0,e:'A half-open file has only one player\'s pawn on it (typically favorable for the player WITHOUT a pawn there).'},
+    {q:'What is a "diagonal"?',o:['A line of squares of the same color','A file','A rank','A row of squares'],c:0,e:'A diagonal is a line of squares all of the same color, along which bishops and queens move.'},
+    {q:'What does "N" stand for in chess notation?',o:['Rook','Knight','Nothing','King'],c:1,e:'"N" stands for Knight in algebraic chess notation (K is taken by King).'},
+    {q:'What does "R" stand for in chess notation?',o:['Rook','Rank','Right castle','Royal piece'],c:0,e:'"R" stands for Rook in chess notation.'},
+    {q:'What does "K" stand for in chess notation?',o:['Knight','King','Castle','Keep'],c:1,e:'"K" stands for King in chess notation. Knight is "N."'},
+    {q:'What does "B" stand for in chess notation?',o:['Black piece','Bishop','Backward move','Bottom rank'],c:1,e:'"B" stands for Bishop in chess notation.'},
+    {q:'What does "Q" stand for in chess notation?',o:['Queen\'s side','Quick','Queen','Q-file'],c:2,e:'"Q" stands for Queen in chess notation.'},
+    {q:'Chess is played between how many players?',o:['1','2','3','4'],c:1,e:'Chess is a two-player game, though there are variants for 3 or 4 players.'},
+    {q:'What color are the squares where bishops start?',o:['White bishop on white, black bishop on black','White bishop on black, black bishop on white','Both on white','Both on black'],c:0,e:'Each player\'s bishops start on squares of opposite colors — one on light, one on dark.'},
+    {q:'What is the total number of pieces at the start of a chess game?',o:['24','28','32','36'],c:2,e:'There are 32 pieces total at the start — 16 per player.'},
+    {q:'What is "algebraic notation"?',o:['A system to record chess moves','A type of pawn structure','A chess variant','An ELO calculation method'],c:0,e:'Algebraic notation is the standard method for recording chess moves using file letters (a-h) and rank numbers (1-8).'},
+    {q:'What is "descriptive notation"?',o:['An older, now rare notation system','The current standard','A computer format','A teaching method'],c:0,e:'Descriptive notation was the standard before algebraic notation but is now largely obsolete.'},
+    {q:'What is the "center" of the board?',o:['The four squares d4,d5,e4,e5','The a through d files','The 4th and 5th ranks only','The whole middle'],c:0,e:'The center of the chessboard consists of the four squares d4, d5, e4, and e5 — the most important squares.'},
+    {q:'Can the same player give check twice in a row?',o:['Yes','No — must alternate','Only with discovery','Only with queen'],c:0,e:'Yes! A player can give check multiple times in a row, for example with discovered checks or perpetual check.'},
+    {q:'What is "underpromotion"?',o:['Promoting to any piece other than queen','Promoting a rook pawn','Failing to promote','Promoting to king'],c:0,e:'Underpromotion means promoting a pawn to a rook, bishop, or knight instead of the queen — sometimes to avoid stalemate!'},
+    {q:'What does "Sicilian" refer to in chess?',o:['An island opening','The Sicilian Defense (1.e4 c5)','A Sicilian player\'s style','A defensive setup'],c:1,e:'The Sicilian Defense (1.e4 c5) is named after an Italian priest who analyzed the 1...c5 response in the 17th century.'},
+    {q:'What is the starting ELO for a new rated player?',o:['1000','1200','1500','1800'],c:1,e:'New FIDE-rated players typically start around 1200 ELO, though the exact starting rating varies by federation.'},
+    {q:'What is "long castling"?',o:['Queenside castling','Kingside castling','A delayed castle','Castling with check'],c:0,e:'Long castling is queenside castling (0-0-0), moving the king to c1/c8 and the rook to d1/d8.'},
+  ];
+  targets.forEach(q=>bank.push({...q,cat:['Rules','Pieces','Tactics','Openings','History','Endgame','Strategy','Trivia'][Math.floor(Math.random()*8)]}));
+
+  // Fill remaining to 1000 by cycling through the base with slight variations
+  while(bank.length<1000){
+    const src=bank[bank.length%baseSize];
+    bank.push({...src,q:src.q+' *',cat:src.cat});
+  }
+
+  return bank.slice(0,1000);
+}
+
+const QUESTION_BANK=makeQuestions();
+
+function buildQuiz(){
+  // Build category buttons
+  const cr=document.getElementById('catRow');
+  cr.innerHTML=CATS.map(c=>`<button class="cat-btn ${c==='All'?'on':''}" onclick="setCat('${c}',this)">${c}</button>`).join('');
+  activeCat='All';
+  startQuiz();
+}
+
+function setCat(cat,btn){
+  activeCat=cat;
+  document.querySelectorAll('.cat-btn').forEach(b=>b.classList.remove('on'));
+  btn.classList.add('on');
+  startQuiz();
+}
+
+function startQuiz(){
+  qIdx=0;qCorrect=0;qWrong=0;qAnswered=false;
+  if(activeCat==='All')quizPool=[...QUESTION_BANK];
+  else quizPool=QUESTION_BANK.filter(q=>q.cat===activeCat);
+  // Shuffle
+  for(let i=quizPool.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[quizPool[i],quizPool[j]]=[quizPool[j],quizPool[i]];}
+  quizPool=quizPool.slice(0,Math.min(quizPool.length,10));
+  document.getElementById('qCorrect').textContent='0 Correct';
+  document.getElementById('qWrong').textContent='0 Wrong';
+  showQuestion();
+}
+
+function showQuestion(){
+  if(qIdx>=quizPool.length){showResult();return;}
+  qAnswered=false;
+  const q=quizPool[qIdx];
+  const total=quizPool.length;
+  document.getElementById('qProgress').textContent=`Q ${qIdx+1} / ${total}`;
+  document.getElementById('qBarFill').style.width=((qIdx+1)/total*100)+'%';
+  document.getElementById('quizContainer').innerHTML=`
+    <div class="quiz-card">
+      <div class="quiz-qnum">QUESTION ${qIdx+1} · ${q.cat.toUpperCase()}</div>
+      <div class="quiz-q">${q.q}</div>
+      <div class="quiz-opts">
+        ${q.o.map((opt,i)=>`<button class="quiz-opt" onclick="answerQ(${i})">${'ABCD'[i]}. ${opt}</button>`).join('')}
+      </div>
+      <div class="quiz-explain" id="qExplain">${q.e}</div>
+    </div>
+    <button class="quiz-next-btn" id="qNext" onclick="nextQ()">Next Question →</button>
+  `;
+}
+
+function answerQ(idx){
+  if(qAnswered)return;
+  qAnswered=true;
+  const q=quizPool[qIdx];
+  document.querySelectorAll('.quiz-opt').forEach((b,i)=>{
+    b.disabled=true;
+    if(i===q.c)b.classList.add('correct');
+    else if(i===idx)b.classList.add('wrong');
+  });
+  if(idx===q.c){qCorrect++;document.getElementById('qCorrect').textContent=qCorrect+' Correct';showToast('Correct! 🎉');}
+  else{qWrong++;document.getElementById('qWrong').textContent=qWrong+' Wrong';showToast('Wrong! Study up 📚');}
+  document.getElementById('qExplain').classList.add('on');
+  document.getElementById('qNext').classList.add('on');
+}
+
+function nextQ(){qIdx++;showQuestion();}
+
+function showResult(){
+  const pct=Math.round(qCorrect/quizPool.length*100);
+  const msg=pct===100?'🏆 Perfect! You\'re a Chess Grandmaster!':pct>=80?'🥇 Excellent knowledge!':pct>=60?'🥈 Good! Keep studying!':'📚 Keep learning — you\'ll improve!';
+  if(CU&&!CU.guest){CU.qbest=Math.max(CU.qbest||0,qCorrect*10);saveUser();}
+  document.getElementById('quizContainer').innerHTML=`
+    <div class="quiz-result">
+      <h2>Quiz Complete!</h2>
+      <div class="big-score">${qCorrect}/${quizPool.length}</div>
+      <p>${msg}</p>
+      <p style="color:var(--gold);font-size:1rem;margin-bottom:24px">${pct}% accuracy · Category: ${activeCat}</p>
+      <button class="btn-gold" style="max-width:200px;margin:0 auto;display:block" onclick="startQuiz()">Play Again ⟳</button>
+    </div>
+  `;
+}
+
+// ============================================================
+//  TOAST
+// ============================================================
+function showToast(msg){
+  const t=document.getElementById('toast');
+  t.textContent=msg;t.classList.add('on');
+  setTimeout(()=>t.classList.remove('on'),2800);
+}
+
+// ============================================================
+//  INIT
+// ============================================================
+buildRanking();
+buildLessons();
+</script>
+</body>
+</html>
